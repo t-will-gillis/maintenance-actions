@@ -22,7 +22,7 @@ timeframes:
 # Project board configuration
 # ==============================================================================
 projectBoard:
-  # The project board status that issues must have to be checked
+  # The Project Board status that issues must have to be checked
   # Only issues with this status will be monitored for staleness
   targetStatus: "In progress (actively working)"
   
@@ -50,8 +50,8 @@ labels:
     - "ER"
     - "Epic"
     - "Dependency"
-    - "Completed"
-    - "good first issue"
+    # - "Completed"
+    # - "good first issue"
 
 # ==============================================================================
 # Bot configuration
