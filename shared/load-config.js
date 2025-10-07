@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const yaml = require('js-yaml');
+// const yaml = require('js-yaml');
 
 /**
  * Generic configuration loader for all maintenance actions
@@ -24,7 +24,8 @@ function loadConfig({ projectRepoPath, configPath, overrides = {}, defaults = {}
     
     // Support both YAML and JSON
     if (configPath.endsWith('.yml') || configPath.endsWith('.yaml')) {
-      fileConfig = yaml.load(configContent);
+      // fileConfig = yaml.load(configContent);
+      console.log('this is a yaml. needs something to read it');
     } else if (configPath.endsWith('.json')) {
       fileConfig = JSON.parse(configContent);
     } else {
