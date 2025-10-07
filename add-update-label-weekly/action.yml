@@ -25,14 +25,14 @@ inputs:
   target-status:
     description: 'Project board status to check'
     required: false
-  label-status-updated:
-    description: 'Name of "updated" label'
+  statusUpdated:
+    description: 'Label keyName for "Status: Updated"'
     required: false
-  label-status-inactive1:
-    description: 'Name of "to update" label'  
+  statusInactive1:
+    description: 'Label keyName for "To Update!"'  
     required: false
-  label-status-inactive2:
-    description: 'Name of "inactive" label'
+  statusInactive2:
+    description: 'Label keyName for "2 weeks inactive"'
     required: false
 
 runs:
@@ -63,9 +63,9 @@ runs:
         OVERRIDE_COMMENT_BY_DAYS: ${{ inputs.comment-by-days }}
         OVERRIDE_INACTIVE_UPDATED_BY_DAYS: ${{ inputs.inactive-updated-by-days }}
         OVERRIDE_TARGET_STATUS: ${{ inputs.target-status }}
-        OVERRIDE_LABEL_STATUS_UPDATED: ${{ inputs.label-status-updated }}
-        OVERRIDE_LABEL_STATUS_INACTIVE1: ${{ inputs.label-status-inactive1 }}
-        OVERRIDE_LABEL_STATUS_INACTIVE2: ${{ inputs.label-status-inactive2 }}
+        OVERRIDE_LABEL_STATUS_UPDATED: ${{ inputs.statusUpdated }}
+        OVERRIDE_LABEL_STATUS_INACTIVE1: ${{ inputs.statusInactive1 }}
+        OVERRIDE_LABEL_STATUS_INACTIVE2: ${{ inputs.statusInactive2 }}
 
 branding:
   icon: 'clock'
