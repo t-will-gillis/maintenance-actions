@@ -5,7 +5,6 @@ const fs = require('fs');
 const getTimeline = require('../../shared/get-timeline');
 const findLinkedIssue = require('../../shared/find-linked-issue');
 const minimizeIssueComment = require('../../shared/hide-issue-comment');
-const logger = require('../../shared/logger');
 
 // Global variables
 var github;
@@ -25,10 +24,10 @@ async function main({ g, c, config: cfg, projectRepoPath }) {
   context = c;
   config = cfg;
   
-  logger.info('Starting issue staleness check');
-  logger.info(`Target status: ${config.projectBoard.targetStatus}`);
-  logger.info(`Timeframes: ${JSON.stringify(config.timeframes)}`);
-  
+  console.log('Starting issue staleness check');
+  console.log(`Target status: ${config.projectBoard.targetStatus}`);
+  console.log(`Timeframes: ${JSON.stringify(config.timeframes)}`);
+
   // Calculate cutoff times
   const cutoffTimes = calculateCutoffTimes(config.timeframes);
   
@@ -37,14 +36,14 @@ async function main({ g, c, config: cfg, projectRepoPath }) {
   
   // Retrieve all issue numbers
   const issueNums = await getIssueNumsFromRepo(labels.exclude);
-  logger.info(`Found ${issueNums.length} issues to check`);
+  console.log(`Found ${issueNums.length} issues to check`);
   
   for await (let issueNum of issueNums) {
     const timeline = await getTimeline(github, context, issueNum);
     const assignees = await getAssignees(issueNum);
     
     if (assignees.length === 0) {
-      logger.warn(`Issue #${issueNum}: No assignees, skipping`);
+      console.warn(`Issue #${issueNum}: No assignees, skipping`);
       continue;
     }
     
@@ -59,7 +58,7 @@ async function main({ g, c, config: cfg, projectRepoPath }) {
     await applyLabelsAndComments(issueNum, assignees, result, labels);
   }
   
-  logger.info('Issue staleness check complete');
+  console.log('Issue staleness check complete');
 }
 
 function calculateCutoffTimes(timeframes) {
@@ -79,7 +78,7 @@ async function getLabels(projectRepoPath) {
   
   let labelMapping = {};
   if (fs.existsSync(labelDirPath)) {
-    logger.info(`Loading labels from: ${config.labelDirectoryPath}`);
+    console.log(`Loading labels from: ${config.labelDirectoryPath}`);
     const labelData = JSON.parse(fs.readFileSync(labelDirPath, 'utf8'));
     
     // Map keys to actual label names
@@ -90,7 +89,7 @@ async function getLabels(projectRepoPath) {
       exclude: config.labels.exclude,
     };
   } else {
-    logger.info('No label directory found, using config values');
+    console.log('No label directory found, using config values');
     labelMapping = {
       statusUpdated: config.labels.statusUpdated,
       statusInactive1: config.labels.statusInactive1,
@@ -144,7 +143,7 @@ async function getIssueNumsFromRepo(excludeLabels) {
 async function queryIssueStatus(issueNum) {
   // This would use GraphQL to query project board status
   // Simplified for now - in real implementation would use projectBoardIds from config
-  logger.debug(`Would query project board status for issue #${issueNum}`);
+  console.log(`Would query project board status for issue #${issueNum}`);
   return config.projectBoard.targetStatus; // Placeholder
 }
 
@@ -162,7 +161,7 @@ async function analyzeTimeline(timeline, issueNum, assignees, cutoffTimes, label
         isLinkedIssue(event, issueNum) && 
         event.source.issue.state === 'open' &&
         assignees.includes(event.actor.login)) {
-      logger.info(`Issue #${issueNum}: Open PR by assignee, remove all labels`);
+      console.log(`Issue #${issueNum}: Open PR by assignee, remove all labels`);
       return { action: 'remove-all', labels: '' };
     }
     
@@ -186,7 +185,7 @@ async function analyzeTimeline(timeline, issueNum, assignees, cutoffTimes, label
     if (isBotComment(event) &&
         new Date(event.created_at) >= cutoffTimes.upperLimit &&
         new Date(event.created_at) < cutoffTimes.comment) {
-      logger.debug(`Comment ${event.node_id} will be minimized`);
+      console.debug(`Comment ${event.node_id} will be minimized`);
       commentsToMinimize.push(event.node_id);
     }
   }
@@ -198,28 +197,28 @@ async function analyzeTimeline(timeline, issueNum, assignees, cutoffTimes, label
   const lastActivity = lastCommentTimestamp || lastAssignedTimestamp;
   
   if (!lastActivity) {
-    logger.info(`Issue #${issueNum}: No activity found, mark inactive`);
+    console.log(`Issue #${issueNum}: No activity found, mark inactive`);
     return { action: 'add', labels: labels.statusInactive2 };
   }
   
   const activityDate = new Date(lastActivity);
   
   if (activityDate >= cutoffTimes.updated) {
-    logger.info(`Issue #${issueNum}: Recent activity, retain updated label`);
+    console.log(`Issue #${issueNum}: Recent activity, retain updated label`);
     return { action: 'retain-updated', labels: labels.statusUpdated };
   }
   
   if (activityDate >= cutoffTimes.comment) {
-    logger.info(`Issue #${issueNum}: Activity within grace period, no labels`);
+    console.log(`Issue #${issueNum}: Activity within grace period, no labels`);
     return { action: 'remove-all', labels: '' };
   }
   
   if (activityDate >= cutoffTimes.inactive) {
-    logger.info(`Issue #${issueNum}: Needs update`);
+    console.log(`Issue #${issueNum}: Needs update`);
     return { action: 'add', labels: labels.statusInactive1 };
   }
   
-  logger.info(`Issue #${issueNum}: Inactive`);
+  console.log(`Issue #${issueNum}: Inactive`);
   return { action: 'add', labels: labels.statusInactive2 };
 }
 
@@ -248,10 +247,10 @@ async function removeLabels(issueNum, ...labels) {
         issue_number: issueNum,
         name: label,
       });
-      logger.debug(`Removed '${label}' from issue #${issueNum}`);
+      console.debug(`Removed '${label}' from issue #${issueNum}`);
     } catch (err) {
       if (err.status !== 404) {
-        logger.error(`Failed to remove '${label}':`, err);
+        console.error(`Failed to remove '${label}':`, err);
       }
     }
   }
@@ -265,9 +264,9 @@ async function addLabels(issueNum, ...labels) {
       issue_number: issueNum,
       labels: labels,
     });
-    logger.debug(`Added '${labels}' to issue #${issueNum}`);
+    console.debug(`Added '${labels}' to issue #${issueNum}`);
   } catch (err) {
-    logger.error(`Failed to add labels:`, err);
+    console.error(`Failed to add labels:`, err);
   }
 }
 
@@ -282,9 +281,9 @@ async function postComment(issueNum, assignees, labelString) {
       issue_number: issueNum,
       body: body,
     });
-    logger.debug(`Posted comment to issue #${issueNum}`);
+    console.debug(`Posted comment to issue #${issueNum}`);
   } catch (err) {
-    logger.error(`Failed to post comment:`, err);
+    console.error(`Failed to post comment:`, err);
   }
 }
 
@@ -323,7 +322,7 @@ async function getAssignees(issueNum) {
     });
     return result.data.assignees.map(a => a.login);
   } catch (err) {
-    logger.error(`Failed to get assignees:`, err);
+    console.error(`Failed to get assignees:`, err);
     return [];
   }
 }

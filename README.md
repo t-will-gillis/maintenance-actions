@@ -18,7 +18,6 @@ maintenance-actions/
 │   ├── get-timeline.js
 │   ├── find-linked-issue.js
 │   ├── hide-issue-comment.js
-│   ├── logger.js
 │   └── load-config.js
 │
 ├── core/                             # Core business logic (one folder per workflow)
@@ -301,10 +300,6 @@ Parses PR body to find linked issues (fixes #123, resolves #456, etc.).
 ### hide-issue-comment.js
 
 Minimizes comments using GraphQL mutation.
-
-### logger.js
-
-Consistent logging across all actions.
 
 ### load-config.js
 

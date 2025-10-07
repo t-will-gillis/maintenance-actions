@@ -8,11 +8,10 @@ const path = require('path');
 // Load staleness-specific config loader and logic
 const loadStalenessConfig = require('../core/add-update-label-weekly/config');
 const addLabelMain = require('../core/add-update-label-weekly/add-label');
-const logger = require('../shared/logger');
 
 async function run({ github, context }) {
   try {
-    logger.info('Starting "Add Update Label Weekly" action');
+    console.log('Starting "Add Update Label Weekly" workflow');
     
     // Get paths from environment (set by action.yml)
     const projectRepoPath = process.env.PROJECT_REPO_PATH || path.join(process.cwd(), '../.project-repo');
@@ -43,9 +42,9 @@ async function run({ github, context }) {
       projectRepoPath,
     });
     
-    logger.info('Action completed successfully');
+    console.log('Action completed successfully');
   } catch (error) {
-    logger.error('Action failed:', error);
+    console.error('Action failed:', error);
     throw error; // Re-throw so github-script marks the action as failed
   }
 }
