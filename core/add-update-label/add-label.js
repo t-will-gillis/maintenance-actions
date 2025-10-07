@@ -40,7 +40,7 @@ async function main({ g, c, config: cfg, projectRepoPath }) {
   logger.info(`Found ${issueNums.length} issues to check`);
   
   for await (let issueNum of issueNums) {
-    const timeline = await getTimeline(issueNum, github, context);
+    const timeline = await getTimeline(github, context, issueNum);
     const assignees = await getAssignees(issueNum);
     
     if (assignees.length === 0) {
