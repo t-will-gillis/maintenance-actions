@@ -23,13 +23,13 @@ maintenance-actions/
 │
 ├── core/                             # Core business logic (one folder per workflow)
 │   │
-│   ├── add-update-label-weekly/
-│   │   ├── add-label.js              # "Add Update Label Weekly" main logic 
-│   │   └── config.js                 # Project-specific config loader
+│   ├── add-update-label-weekly/      # "Add Update Label Weekly" files
+│   │   ├── add-label.js              #    ⮡ Main logic 
+│   │   └── config.js                 #    ⮡ Project-specific config loader
 │   │
 │   └── pr-validation/                # Future: PR validation logic
-│       ├── validate-pr.js
-│       └── config.js                 # Project-specific config loader
+│       ├── validate-pr.js            #    ⮡ Main logic
+│       └── config.js                 #    ⮡ Project-specific config loader
 │
 ├── example-configs/                  # Example configuration files
 │   ├── add-update-label-config.example.yml
