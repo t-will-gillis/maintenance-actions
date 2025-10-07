@@ -1,5 +1,10 @@
-# maintenance-actions/.github/workflows/add-update-label-weekly.yml
-name: Add Update Label Weekly
+# `maintenance-actions/.github/workflows/add-update-label-weekly.yml`
+
+# This workflow expects a project-specific config file.
+# Example config: `../../example-configs/add-update-label-config.example.yml` 
+# Pass the path to your config as 'configFile' input when calling this workflow.
+
+name: Add Update Label Weekly, Revision 1
 
 on:
   workflow_call:
