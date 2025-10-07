@@ -1,2 +1,8 @@
-# dependencies
+# Ignore dependencies
 node_modules
+
+# Ignore OS and IDE tracking files
+.DS_store
+
+# Ignore logs
+*.log
