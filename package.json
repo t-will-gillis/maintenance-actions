@@ -1,0 +1,23 @@
+{
+  "name": "maintenance-actions",
+  "version": "0.1.0",
+  "description": "Centralized GitHub Actions for repository maintenance and automation across the organization.",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@octokit/rest": "^20.1.2"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --check ."
+  },
+  "keywords": [],
+  "author": ""
+}
