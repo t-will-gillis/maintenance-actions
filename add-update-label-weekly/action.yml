@@ -1,0 +1,72 @@
+name: Add Update Label Weekly
+# aka "Schedule Friday 0700"
+description: Automatically manages issue label update reminders based on assignee activity 
+author: Hack for LA
+
+inputs:
+  github-token:
+    description: 'GitHub token with repo and project scopes'
+    required: true
+  config-path:
+    description: 'Path to YAML config file in the calling repo'
+    required: false
+    default: '.github/maintenance-actions/add-update-label-config.yml'
+  
+  # Optional overrides (if not using config file)
+  updated-by-days:
+    description: 'Days within which issue is considered current'
+    required: false
+  comment-by-days:
+    description: 'Days before first warning label'
+    required: false
+  inactive-updated-by-days:
+    description: 'Days before inactive label'
+    required: false
+  target-status:
+    description: 'Project board status to check'
+    required: false
+  label-status-updated:
+    description: 'Name of "updated" label'
+    required: false
+  label-status-inactive1:
+    description: 'Name of "to update" label'  
+    required: false
+  label-status-inactive2:
+    description: 'Name of "inactive" label'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout maintenance-actions
+      uses: actions/checkout@v5
+      with:
+        repository: ${{ github.repository_owner }}/maintenance-actions
+        path: .maintenance-actions
+        
+    - name: Checkout calling repository
+      uses: actions/checkout@v5
+      with:
+        path: .project-repo
+    
+    - name: Add update labels to applicable issues
+      shell: bash
+      run: |
+        cd .maintenance-actions/add-update-label-weekly
+        node index.js
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        CONFIG_PATH: ${{ inputs.config-path }}
+        OVERRIDE_UPDATED_BY_DAYS: ${{ inputs.updated-by-days }}
+        OVERRIDE_COMMENT_BY_DAYS: ${{ inputs.comment-by-days }}
+        OVERRIDE_INACTIVE_UPDATED_BY_DAYS: ${{ inputs.inactive-updated-by-days }}
+        OVERRIDE_TARGET_STATUS: ${{ inputs.target-status }}
+        OVERRIDE_LABEL_STATUS_UPDATED: ${{ inputs.label-status-updated }}
+        OVERRIDE_LABEL_STATUS_INACTIVE1: ${{ inputs.label-status-inactive1 }}
+        OVERRIDE_LABEL_STATUS_INACTIVE2: ${{ inputs.label-status-inactive2 }}
+
+branding:
+  icon: 'clock'
+  color: 'blue'
