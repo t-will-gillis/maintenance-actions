@@ -50,23 +50,40 @@ runs:
         path: .project-repo
     
     - name: Add update labels to applicable issues
-      shell: bash
-      run: |
-        cd .maintenance-actions/add-update-label-weekly
-        node index.js
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-        CONFIG_PATH: ${{ inputs.config-path }}
-        OVERRIDE_UPDATED_BY_DAYS: ${{ inputs.updated-by-days }}
-        OVERRIDE_COMMENT_BY_DAYS: ${{ inputs.comment-by-days }}
-        OVERRIDE_INACTIVE_UPDATED_BY_DAYS: ${{ inputs.inactive-updated-by-days }}
-        OVERRIDE_TARGET_STATUS: ${{ inputs.target-status }}
-        OVERRIDE_LABEL_STATUS_UPDATED: ${{ inputs.statusUpdated }}
-        OVERRIDE_LABEL_STATUS_INACTIVE1: ${{ inputs.statusInactive1 }}
-        OVERRIDE_LABEL_STATUS_INACTIVE2: ${{ inputs.statusInactive2 }}
-
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const path = require('path');
+          const fs = require('fs');
+          
+          // Set working directory paths
+          const maintenanceActionsPath = path.join(process.cwd(), '.maintenance-actions');
+          const projectRepoPath = path.join(process.cwd(), '.project-repo');
+          
+          // Load configuration
+          const loadStalenessConfig = require(path.join(maintenanceActionsPath, 'core/staleness/config.js'));
+          
+          const overrides = {
+            updatedByDays: '${{ inputs.updated-by-days }}' || undefined,
+            commentByDays: '${{ inputs.comment-by-days }}' || undefined,
+            inactiveUpdatedByDays: '${{ inputs.inactive-updated-by-days }}' || undefined,
+            targetStatus: '${{ inputs.target-status }}' || undefined,
+            labelStatusUpdated: '${{ inputs.label-status-updated }}' || undefined,
+            labelStatusInactive1: '${{ inputs.label-status-inactive1 }}' || undefined,
+            labelStatusInactive2: '${{ inputs.label-status-inactive2 }}' || undefined,
+          };
+          
+          const config = loadStalenessConfig({
+            projectRepoPath,
+            configPath: '${{ inputs.config-path }}',
+            overrides,
+          });
+          
+          // Load and run main script
+          const addLabelMain = require(path.join(maintenanceActionsPath, 'core/staleness/add-label.js'));
+          await addLabelMain({ g: github, c: context, config, projectRepoPath });
+          
 branding:
   icon: 'clock'
   color: 'blue'
