@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Entry point for add-update-label-weekly action
+ * Entry point for "Add Update Label Weekly" workflow action
  * This script bridges between GitHub Actions composite action and the core logic
  */
 
@@ -13,8 +13,8 @@ const { context } = require('@actions/github');
 const logger = require('../shared/logger');
 
 // Load staleness-specific config loader and logic
-const loadStalenessConfig = require('../core/staleness/config');
-const addLabelMain = require('../core/staleness/add-label');
+const loadStalenessConfig = require('../core/add-update-label-weekly/config');
+const addLabelMain = require('../core/add-update-label-weekly/add-label');
 
 async function run() {
   try {
