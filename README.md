@@ -22,12 +22,13 @@ maintenance-actions/
 │   └── load-config.js
 │
 ├── core/                            # Core business logic (one folder per workflow)
-│   ├── staleness/
-│   │   ├── add-label.js             # Main staleness logic
-│   │   └── config.js                # Staleness-specific config loader
+│   ├── add-update-label/
+│   │   ├── add-label.js             # Main logic for "Add Update Label Weekly"
+│   │   └── config.js                # Project-specific config loader
+│   │
 │   └── pr-validation/               # Future: PR validation logic
 │       ├── validate-pr.js
-│       └── config.js                # PR-specific config loader
+│       └── config.js                # Project-specific config loader
 │
 ├── example-configs/                 # Example configuration files
 │   ├── add-update-label-config.example.yml
@@ -40,12 +41,13 @@ maintenance-actions/
 
 ### Add Update Label Weekly
 
+
 Automatically manages issue staleness labels based on assignee activity.
 
 **Usage:**
 
 ```yaml
-- uses: my_github_username/maintenance-actions/add-update-label-weekly@v1
+- uses: project_name/maintenance-actions/add-update-label-weekly@v1
   with:
     github-token: ${{ secrets.MY_TOKEN }}
     config-path: '.github/maintenance-actions/add-update-label-config.yml'
@@ -112,11 +114,11 @@ Add required secrets to your repository (Settings → Secrets → Actions).
 
 ### What It Does
 
-- Monitors issues in "In progress (actively working)" status
-- Adds warning labels after 7 days of inactivity
-- Adds inactive labels after 14 days of inactivity
+- Monitors **open, assigned** issues in "In progress (actively working)" status
+- Adds warning labels after (default) 7 days of inactivity
+- Adds inactive labels after (default) 14 days of inactivity
 - Removes labels when issues are updated or have linked PRs
-- Minimizes outdated bot comments
+- Minimizes outdated bot comments 
 
 ### Configuration
 
@@ -148,7 +150,7 @@ bots:
 labelDirectoryPath: ".github/label-directory.json"  # Optional
 
 commentTemplate: |
-  Hello ${assignees}! 👋
+  Hello ${assignees}! 
   This issue needs an update...
 ```
 
