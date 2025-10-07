@@ -1,20 +1,143 @@
-# Template/example config file for "Add Update Label Weekly" workflow
+# Configuration for "Add Update Label Weekly" action
+# Copy this file to your project: .github/maintenance-actions/add-update-label-config.yml
+# Customize the values below for your project's needs
 
-repoName: "example-repo"         # Replace with your repository name
-owner: "my_org"                  # Replace with your org or user
-githubToken: "${{ secrets.PROJECT_TOKEN }}"  # Your token secret
+# ==============================================================================
+# Time thresholds (in days)
+# ==============================================================================
+timeframes:
+  # Issues updated within this many days are considered current
+  updatedByDays: 3
+  
+  # Issues not updated for this many days get first warning label
+  commentByDays: 7
+  
+  # Issues not updated for this many days get inactive label
+  inactiveUpdatedByDays: 14
+  
+  # Bot-generated comments older than this many days are minimized/hidden
+  upperLimitDays: 35
 
+# ==============================================================================
+# Project board configuration
+# ==============================================================================
+projectBoard:
+  # The project board status that issues must have to be checked
+  # Only issues with this status will be monitored for staleness
+  targetStatus: "In progress (actively working)"
+  
+  # Optional: GraphQL node IDs for your project board (for future use)
+  # projectBoardIds:
+  #   projectNodeId: "PVT_kwDOABcD..."
+  #   statusFieldId: "PVTSSF_lADO..."
+
+# ==============================================================================
+# Label configuration
+# ==============================================================================
 labels:
-  authorized: "AUTHORIZED_LABEL"
-  inactive: "INACTIVE_LABEL"
-  draft: "DRAFT_LABEL"
-  epic: "EPIC_LABEL"
+  # Label applied to issues that were recently updated (within updatedByDays)
+  statusUpdated: "Status: Updated"
+  
+  # Label applied to issues needing update (commentByDays to inactiveUpdatedByDays old)
+  statusInactive1: "Status: To Update"
+  
+  # Label applied to inactive issues (older than inactiveUpdatedByDays)
+  statusInactive2: "Status: Inactive"
+  
+  # Issues with any of these labels will be skipped entirely
+  exclude:
+    - "Draft"
+    - "ER"
+    - "Epic"
+    - "Dependency"
+    - "Completed"
+    - "good first issue"
 
-issueState: "open"               # Optional, default is 'open'
-labelFilter: null                # Optional
-inactiveDays: 30                 # Optional, default is 30
-maxIssues: 100                   # Optional, default is 100
+# ==============================================================================
+# Bot configuration
+# ==============================================================================
+# Bot usernames whose comments should be minimized when they become outdated
+# Comments are minimized if they're between commentByDays and upperLimitDays old
+bots:
+  - "github-actions[bot]"
+  - "HackforLABot"
+  # Add your organization's bot usernames here
 
-logLevel: "info"                 # Optional
-notifyChannel: null              # Optional
-commentTemplate: null            # Optional
+# ==============================================================================
+# Label directory (optional)
+# ==============================================================================
+# Path to your project's label directory JSON file (relative to project root)
+# If this file exists, label names will be loaded from it instead of the 
+# labels section above. This is useful if you have a centralized label system.
+#
+# Example label-directory.json structure:
+# {
+#   "statusUpdated": "Status: Updated",
+#   "statusInactive1": "Status: To Update",
+#   "statusInactive2": "Status: Inactive"
+# }
+labelDirectoryPath: ".github/label-directory.json"
+
+# ==============================================================================
+# Comment template
+# ==============================================================================
+# Template for the comment posted to issues when they need updates
+# Available variables:
+#   ${assignees} - @-mentions of all assignees (e.g., "@user1, @user2")
+#   ${label}     - The label being applied (e.g., "Status: To Update")
+#   ${cutoffTime} - The formatted timestamp of when the issue was last updated
+#
+# You can use Markdown formatting in the template
+commentTemplate: |
+  Hello ${assignees}!
+  
+  Please add an update comment using the below template (even if you have a pull request). Afterwards, remove the `${label}` label and add the `Status: Updated` label.
+
+  1. Progress: "What is the current status of your issue? What have you completed and what is left to do?"
+  2. Blockers: "Explain any difficulties or errors encountered."
+  3. Availability: "How much time will you have this week to work on this issue?"
+  4. ETA: "When do you expect this issue to be completed?"
+  5. Pictures (optional): "Add any pictures of the visual changes made to the site so far."
+
+  If you need help, be sure to either: 1) place your issue in the "Questions/In Review" status column of the Project Board and ask for help at your next meeting; 2) put a `Status: Help Wanted` label on your issue and pull request; or 3) put up a request for assistance on the #hfla-site channel. Please note that including your questions in the issue comments- along with screenshots, if applicable- will help us to help you. [Here](https://github.com/hackforla/website/issues/1619#issuecomment-897315561) and [here](https://github.com/hackforla/website/issues/1908#issuecomment-877908152) are examples of well-formed questions.
+
+  <sub>You are receiving this comment because your last comment was before ${cutoffTime} PST.</sub>
+  
+  ## What does this mean?
+  
+  Your issue was last updated before **${cutoffTime}**. To keep this issue active and show progress, please provide an update by:
+  
+  - 💬 Commenting on your progress
+  - ❓ Asking questions if you're blocked
+  - 📝 Updating the issue description with new information
+  
+  ## Why does this matter?
+  
+  Regular updates help:
+  - The team stay informed about progress
+  - Other contributors know the issue is actively being worked on
+  - Maintainers provide timely help if you're stuck
+  
+  ## What should I do?
+  
+  Simply add a comment with your current status. Even a brief update helps! For example:
+  - "Still working on this, making progress on X"
+  - "Blocked by Y, need help with Z"
+  - "PR is ready for review"
+  
+  Thanks for being part of the team! 🙌
+
+
+
+
+
+# ==============================================================================
+# Advanced options
+# ==============================================================================
+# Uncomment and configure these if needed for your project
+
+# # Custom timezone for cutoffTime display in comments (default: America/Los_Angeles)
+# timezone: "America/New_York"
+
+# # Dry run mode - log what would happen without making changes (default: false)
+# dryRun: false
