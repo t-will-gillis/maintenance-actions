@@ -1,0 +1,20 @@
+# Template/example config file for "Add Update Label Weekly" workflow
+
+repoName: "example-repo"         # Replace with your repository name
+owner: "my_org"                  # Replace with your org or user
+githubToken: "${{ secrets.PROJECT_TOKEN }}"  # Your token secret
+
+labels:
+  authorized: "AUTHORIZED_LABEL"
+  inactive: "INACTIVE_LABEL"
+  draft: "DRAFT_LABEL"
+  epic: "EPIC_LABEL"
+
+issueState: "open"               # Optional, default is 'open'
+labelFilter: null                # Optional
+inactiveDays: 30                 # Optional, default is 30
+maxIssues: 100                   # Optional, default is 100
+
+logLevel: "info"                 # Optional
+notifyChannel: null              # Optional
+commentTemplate: null            # Optional
