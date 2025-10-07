@@ -6,7 +6,7 @@ Centralized GitHub Actions for repository maintenance and automation across the 
 
 ```
 maintenance-actions/
-├── add-update-label-weekly/         # Issue staleness tracking action
+├── add-update-label-weekly/         # "Add Update Label Weekly" workflow
 │   ├── action.yml
 │   └── index.js
 │
@@ -21,20 +21,21 @@ maintenance-actions/
 │   ├── logger.js
 │   └── load-config.js
 │
-├── core/                            # Core business logic (one folder per workflow)
-│   ├── add-update-label/
-│   │   ├── add-label.js             # Main logic for "Add Update Label Weekly"
-│   │   └── config.js                # Project-specific config loader
+├── core/                             # Core business logic (one folder per workflow)
 │   │
-│   └── pr-validation/               # Future: PR validation logic
+│   ├── add-update-label-weekly/
+│   │   ├── add-label.js              # "Add Update Label Weekly" main logic 
+│   │   └── config.js                 # Project-specific config loader
+│   │
+│   └── pr-validation/                # Future: PR validation logic
 │       ├── validate-pr.js
-│       └── config.js                # Project-specific config loader
+│       └── config.js                 # Project-specific config loader
 │
-├── example-configs/                 # Example configuration files
+├── example-configs/                  # Example configuration files
 │   ├── add-update-label-config.example.yml
 │   └── check-pr-config.example.yml
 │
-└── package.json                     # Dependencies for all actions
+└── package.json                      # Dependencies for all actions
 ```
 
 ## Available Actions
