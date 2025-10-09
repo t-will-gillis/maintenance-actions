@@ -14,7 +14,7 @@ function loadActionConfig({ projectRepoPath, configPath, overrides = {} }) {
     timeframes: {
       updatedByDays: 3,
       commentByDays: 7,
-      inactiveUpdatedByDays: 14,
+      inactiveByDays: 14,
       upperLimitDays: 35,
     },
     
