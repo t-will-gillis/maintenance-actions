@@ -4,56 +4,45 @@ Centralized GitHub Actions for repository maintenance and automation across the 
 
 ## Repository Structure
 
-```
+```markdown
 maintenance-actions/
-├── add-update-label-weekly/         # "Add Update Label Weekly" workflow
+├── add-update-label-weekly/            # "Add Update Label Weekly" workflow
 │   ├── action.yml
 │   └── index.js
 │
-├── check-pr-linked-issue/           # Future: PR validation action
+├── check-pr-linked-issue/              # Future: PR validation action
 │   ├── action.yml
 │   └── index.js
 │
-├── shared/                          # Shared utilities across all actions
+├── shared/                             # Shared utilities across all actions
 │   ├── get-timeline.js
 │   ├── find-linked-issue.js
 │   ├── hide-issue-comment.js
 │   └── load-config.js
 │
-├── core/                             # Core business logic (one folder per workflow)
+├── core/                               # Core business logic (one folder per workflow)
 │   │
-│   ├── add-update-label-weekly/      # "Add Update Label Weekly" files
-│   │   ├── add-label.js              #    ⮡ Main logic 
-│   │   └── config.js                 #    ⮡ Project-specific config loader
+│   ├── add-update-label-weekly/        # "Add Update Label Weekly" files
+│   │   ├── add-label.js                #    ⮡ Main logic 
+│   │   └── config.js                   #    ⮡ Project-specific config loader
 │   │
-│   └── pr-validation/                # Future: PR validation logic
-│       ├── validate-pr.js            #    ⮡ Main logic
-│       └── config.js                 #    ⮡ Project-specific config loader
+│   └── pr-validation/                  # Future: PR validation logic
+│       ├── validate-pr.js              #    ⮡ Main logic
+│       └── config.js                   #    ⮡ Project-specific config loader
 │
-├── example-configs/                  # Example configuration files
-│   ├── add-update-label-config.example.yml
-│   └── check-pr-config.example.yml
+├── example-configs/                    # Example configuration files
+│   ├── add-update-label-weekly-config.example.yml
+│   ├── check-pr-config.example.yml
+│   └── label-directory.yml 
 │
-└── package.json                      # Dependencies for all actions
+└── package.json                        # Dependencies for all actions
 ```
 
 ## Available Actions
 
 ### Add Update Label Weekly
 
-
-Automatically manages issue staleness labels based on assignee activity.
-
-**Usage:**
-
-```yaml
-- uses: project_name/maintenance-actions/add-update-label-weekly@v1
-  with:
-    github-token: ${{ secrets.MY_TOKEN }}
-    config-path: '.github/maintenance-actions/add-update-label-config.yml'
-```
-
-[Full documentation →](#add-update-label-weekly-1)
+Monitors “In Progress” issues for recent updates since the last run and posts reminders to assignees who haven’t provided activity.<br>[Full details →](#add-update-label-weekly-1)
 
 ### Check PR Linked Issue (Coming Soon)
 
@@ -61,36 +50,113 @@ Validates that pull requests reference an issue.
 
 ---
 
-## Getting Started
+## Set Up
+Choose your desired workflow, then follow the steps to implement it in your repo.
 
-### For Projects Using These Actions
+---
 
-#### Step 1: Copy Example Config
+### Add Update Label Weekly
 
-Copy the appropriate example config from `example-configs/` to your project:
+#### What It Does
+
+- Scans all **open, assigned** issues with a status of "In progress (actively working)"<sup>1</sup>.
+- Checks for recent comments from the issue **assignee** since the last automation run<sup>2</sup>.
+- If there are no recent comments from the assignee, posts a reminder<sup>3</sup> that the assignee should: 
+  - provide a brief update on their progress,
+  - describe blockers and request help if needed,
+  - indicate their availability for working on the issue, and
+  - share an estimated time to complete the issue.
+- Applies the label "statusInactive1" : `To Update!`<sup>4</sup> if this is the first notice.
+- Applies the label "statusInactive2": `2 weeks inactive`<sup>4</sup> if this is the second notice. 
+- Additional features:
+  - Minimizes previous, repetitive bot comments within a specified timeframe<sup>2</sup>.
+  - Applies the label (default) "statusUpdated": `Status: Updated`<sup>4</sup> if an update was posted recently.
+  - Removes previously applied labels when appropriate.
+- Ensures ongoing communication, accountability, and support across active tasks.
+
+
+These are configurable, see [Step 2: Customize Config →](#step-2-customize-config):  
+<sub>&emsp; <sup>1</sup> Project Board status  
+&emsp; <sup>2</sup> All time periods  
+&emsp; <sup>3</sup> Reminder message  
+&emsp; <sup>4</sup> All label names</sub>  
+
+### Implementing in Your Project
+
+
+#### Step 1: Copy and rename the example config from `example-configs/` into your repo. 
+
 
 ```bash
+# Ensure target folder exists
 mkdir -p .github/maintenance-actions
-cp example-configs/add-update-label-config.example.yml \
-   .github/maintenance-actions/add-update-label-config.yml
+
+# Copy and rename the remote file into your local repo
+curl -L https://github.com/hackforla/website/raw/main/maintenance-actions/example-configs/add-update-label-weekly-config.example.yml \
+-o .github/maintenance-actions/add-update-label-weekly-config.yml
 ```
 
-#### Step 2: Customize Config
+#### Step 2: Customize Config 
 
-Edit `.github/maintenance-actions/add-update-label-config.yml` for your project's needs.
+Edit `.github/maintenance-actions/add-update-label-weekly-config.yml` for your project's needs.
 
-#### Step 3: Create Workflow
+#### Step 3: Integrate the Label Directory (Optional)
 
-Create `.github/workflows/add-update-label-weekly.yml`:
+Note that the configuration file 
+
+```bash
+# Ensure target folder exists
+mkdir -p .github/maintenance-actions
+
+# Only if your project does not have this file already, copy and rename the remote file into your local repo
+[ -f .github/maintenance-actions/label-directory.yml ] && echo "File already exists" || curl -L https://github.com/hackforla/website/raw/main/maintenance-actions/example-configs/label-directory.example.yml \
+-o .github/maintenance-actions/label-directory.yml
+```
+Correlate the 'labelKey' values to the 'Label Names' that are applicable to your project in the format: 
+```yml
+labels:
+  ...
+  labelKey1: "Label Name 1"
+  labelKey2: "Label Name 2'
+  ...
+```
+
+If you do not include the values in `.github/maintenance-actions/label-directory.yml`, the default values shown in `.github/maintenance-actions/add-update-label-weekly-config.yml` will apply. For this workflow, the default values are: 
+
+```yml
+  # Required by the workflow:
+  statusUpdated: "Status: Updated"
+  statusInactive1: "To Update!"
+  statusInactive2: "2 weeks inactive"
+
+  # Exclude issues with any of these labels: 
+  draft: "Draft"
+  er: "ER"
+  epic: "Epic"
+  dependency: "Dependency"
+  complexity0: "Complexity: Prework"
+```
+
+Set the path in your config:
+
+```bash
+labelDirectoryPath: ".github/maintenance-actions/label-directory.yml"
+```
+#### Step 4: Create Workflow YML
+
+Create `.github/workflows/add-update-label-weekly.yml` and add the following text:
 
 ```yaml
 name: Add Update Label Weekly
 
+# CUSTOMIZE the cron schedule to meet your project needs
+# Current cron is set to run Friday at 7:00 UTC every month except July and December
 on:
   schedule:
     - cron: '0 7 * 1-6,8-11 5'
   workflow_dispatch:
 
+# Default token permissions
 permissions:
   contents: read
   issues: read
@@ -101,106 +167,40 @@ jobs:
     steps:
       - uses: my_github_username/maintenance-actions/add-update-label-weekly@v1
         with:
-          github-token: ${{ secrets.MY_TOKEN }}
+          github-token: ${{ secrets.PROJECT_GRAPHQL_TOKEN }}
 ```
 
-#### Step 4: Add Secrets
+#### Step 5: Create Token and Secret
 
-Add required secrets to your repository (Settings → Secrets → Actions).
+Create a Personal Access Token with the scopes:
+- `repo` (full control)
+- `project` (full control)
 
----
+Add it to the secret `PROJECT_GRAPHQL_TOKEN` to use in the workflow.
 
-## Add Update Label Weekly
 
-### What It Does
-
-- Monitors **open, assigned** issues in "In progress (actively working)" status
-- Adds warning labels after (default) 7 days of inactivity
-- Adds inactive labels after (default) 14 days of inactivity
-- Removes labels when issues are updated or have linked PRs
-- Minimizes outdated bot comments 
-
-### Configuration
-
-All configuration is done via YAML file in your project:
-
-```yaml
-# .github/maintenance-actions/add-update-label-config.yml
-
-timeframes:
-  updatedByDays: 3
-  commentByDays: 7
-  inactiveUpdatedByDays: 14
-  upperLimitDays: 35
-
-projectBoard:
-  targetStatus: "In progress (actively working)"
-
-labels:
-  statusUpdated: "Status: Updated"
-  statusInactive1: "Status: To Update"
-  statusInactive2: "Status: Inactive"
-  exclude:
-    - "Draft"
-    - "Epic"
-
-bots:
-  - "github-actions[bot]"
-
-labelDirectoryPath: ".github/label-directory.json"  # Optional
-
-commentTemplate: |
-  Hello ${assignees}! 
-  This issue needs an update...
-```
 
 ### Action Inputs
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `github-token` | Token with repo and project scopes | Yes | - |
-| `config-path` | Path to config YAML in your repo | No | `.github/maintenance-actions/add-update-label-config.yml` |
+| `github-token` | Token with 'repo (full)' and 'project (full)' scopes | Yes | - |
+| `config-path` | Path to config YAML in your repo | No | `.github/maintenance-actions/`<br>`add-update-label-weekly-config.yml` |
 | `updated-by-days` | Override: days for "current" threshold | No | From config |
-| `comment-by-days` | Override: days for first warning | No | From config |
-| `inactive-updated-by-days` | Override: days for inactive | No | From config |
-| `target-status` | Override: project board status | No | From config |
+| `comment-by-days` | Override: days for first notice | No | From config |
+| `inactive-updated-by-days` | Override: days for second notice | No | From config |
+| `target-status` | Override: Project Board status | No | From config |
 | `label-status-*` | Override: label names | No | From config |
 
-### Label Directory Integration
-
-If your project has a label directory JSON file, the action will automatically use it:
-
-```json
-// .github/label-directory.json
-{
-  "statusUpdated": "Status: Updated",
-  "statusInactive1": "Status: To Update",
-  "statusInactive2": "Status: Inactive"
-}
-```
-
-Set the path in your config:
-
-```yaml
-labelDirectoryPath: ".github/label-directory.json"
-```
-
-### Required Secret
-
-Create a Personal Access Token with:
-- `repo` (full control)
-- `project` (full control)
-
-Add it as a repository secret and reference in your workflow.
 
 ---
 
-## Development
+# Monorepo Development Notes
 
 ### Setup
 
 ```bash
-git clone https://github.com/my_github_username/maintenance-actions.git
+git clone https://hackforla/my_github_username/maintenance-actions.git
 cd maintenance-actions
 npm install
 ```
@@ -211,7 +211,7 @@ Since this is a composite action that runs in the GitHub Actions environment, de
 
 ### Testing
 
-Test actions in a separate test repository before releasing to `@v1`.
+Test actions in a separate test repository before releasing next version.
 
 ### Adding a New Action
 

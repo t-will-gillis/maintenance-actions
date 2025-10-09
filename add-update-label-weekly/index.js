@@ -5,9 +5,9 @@
 
 const path = require('path');
 
-// Load staleness-specific config loader and logic
-const loadStalenessConfig = require('../core/add-update-label-weekly/config');
-const addLabelMain = require('../core/add-update-label-weekly/add-label');
+// Load action-specific config loader and logic
+const loadActionConfig = require('../core/add-update-label-weekly/config');
+const actionMain = require('../core/add-update-label-weekly/add-label');
 
 async function run({ github, context }) {
   try {
@@ -17,7 +17,7 @@ async function run({ github, context }) {
     const projectRepoPath = process.env.PROJECT_REPO_PATH || path.join(process.cwd(), '../.project-repo');
     
     // Get configuration from environment variables
-    const configPath = process.env.CONFIG_PATH || '.github/maintenance-actions/add-update-label-config.yml';
+    const configPath = process.env.CONFIG_PATH || '.github/maintenance-actions/add-update-label-weekly-config.yml';
     const overrides = {
       updatedByDays: process.env.OVERRIDE_UPDATED_BY_DAYS || undefined,
       commentByDays: process.env.OVERRIDE_COMMENT_BY_DAYS || undefined,
@@ -28,14 +28,14 @@ async function run({ github, context }) {
       labelStatusInactive2: process.env.OVERRIDE_LABEL_STATUS_INACTIVE2 || undefined,
     };
     
-    const config = loadStalenessConfig({
+    const config = loadActionConfig({
       projectRepoPath,
       configPath,
       overrides,
     });
     
     // Run the main logic
-    await addLabelMain({
+    await actionMain({
       g: github,
       c: context,
       config,

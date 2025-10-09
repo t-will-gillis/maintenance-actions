@@ -12,9 +12,8 @@ async function getTimeline(github, context, issueNum) {
   
   while (true) {
     try {
-      // Equiv: https://docs.github.com/en/rest/issues/timeline?apiVersion=2022-11-28#list-timeline-events-for-an-issue
-      // github.request('GET /repos/{owner}/{repo}/issues/{issue_number}/timeline', { })
-      const results = await github.rest.issues.listEventsForTimeline({
+      // https://docs.github.com/en/rest/issues/timeline?apiVersion=2022-11-28#list-timeline-events-for-an-issue
+      const results = await github.request('GET /repos/{owner}/{repo}/issues/{issue_number}/timeline', {
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: issueNum,

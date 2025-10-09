@@ -1,6 +1,6 @@
 name: Add Update Label Weekly
 # aka "Schedule Friday 0700"
-description: Automatically manages issue label update reminders based on assignee activity 
+description: Monitors “In Progress” issues for recent updates since the last run and posts reminders to assignees who haven’t provided activity. 
 author: Hack for LA
 
 inputs:
@@ -19,7 +19,7 @@ inputs:
   comment-by-days:
     description: 'Days before first warning label'
     required: false
-  inactive-updated-by-days:
+  inactive-by-days:
     description: 'Days before inactive label'
     required: false
   target-status:
@@ -66,7 +66,7 @@ runs:
           process.env.CONFIG_PATH = '${{ inputs.config-path }}';
           process.env.OVERRIDE_UPDATED_BY_DAYS = '${{ inputs.updated-by-days }}';
           process.env.OVERRIDE_COMMENT_BY_DAYS = '${{ inputs.comment-by-days }}';
-          process.env.OVERRIDE_INACTIVE_UPDATED_BY_DAYS = '${{ inputs.inactive-updated-by-days }}';
+          process.env.OVERRIDE_INACTIVE_BY_DAYS = '${{ inputs.inactive-by-days }}';
           process.env.OVERRIDE_TARGET_STATUS = '${{ inputs.target-status }}';
           process.env.OVERRIDE_LABEL_STATUS_UPDATED = '${{ inputs.label-status-updated }}';
           process.env.OVERRIDE_LABEL_STATUS_INACTIVE1 = '${{ inputs.label-status-inactive1 }}';

@@ -1,29 +1,25 @@
 # Configuration for "Add Update Label Weekly" action
-# Copy this file to your project: .github/maintenance-actions/add-update-label-config.yml
+# Copy this file to your project: `.github/maintenance-actions/add-update-label-config.yml`
 # Customize the values below for your project's needs
 
 # ==============================================================================
 # Time thresholds (in days)
 # ==============================================================================
 timeframes:
-  # Issues updated within this many days are considered current
-  updatedByDays: 3
   
-  # Issues not updated for this many days get first warning label
-  commentByDays: 7
-  
-  # Issues not updated for this many days get inactive label
-  inactiveUpdatedByDays: 14
-  
-  # Bot-generated comments older than this many days are minimized/hidden
-  upperLimitDays: 35
+  updatedByDays: 3     # Issues updated within this many days are considered current
+  commentByDays: 7     # Issues not updated for this many days are prompted for an update
+  inactiveByDays: 14   # Issues not updated for this many days are marked as inactive
+  upperLimitDays: 35   # To reduce issue clutter, a GraphQL mutation minimizes repetitive 
+                       #   bot comments by default. Bot comments older than this are not 
+                       #   included to avoid GitHub rate limiting (and they should have 
+                       #   been minimized during previous runs).
 
 # ==============================================================================
 # Project board configuration
 # ==============================================================================
 projectBoard:
-  # The Project Board status that issues must have to be checked
-  # Only issues with this status will be monitored for staleness
+  # Issues with this status on the Project Board will be checked for updates.
   targetStatus: "In progress (actively working)"
   
   # Optional: GraphQL node IDs for your project board (for future use)
@@ -34,64 +30,87 @@ projectBoard:
 # ==============================================================================
 # Label configuration
 # ==============================================================================
+# This workflow uses issue labels both to identify issues that require review and 
+# to exclude issues that do not. 
+
+# Labels are identified as key-value pairs, i.e.
+# 
+#   labelKey1: "Label Name 1"
+#   labelKey2: "Label Name 2"
+#   ...
+
+# The 'labelKey' values are used internally by the workflow and should not be 
+# changed, however the 'Label Name' values can be customized to match your project's 
+# preferred labels. 
+
+# The 'Label Name' values shown in this section will be used as the default 
+# values unless overridden by the optional `label-directory.yml` file.
+# See "Label directory (Optional)" following.
+
 labels:
-  # Label applied to issues that were recently updated (within updatedByDays)
+  # Note: the following `status` 'labelKeys' are required. 
+  # Label applied to issues that were recently updated (within `updatedByDays`)
   statusUpdated: "Status: Updated"
   
-  # Label applied to issues needing update (commentByDays to inactiveUpdatedByDays old)
-  statusInactive1: "Status: To Update"
+  # Label applied to issues needing update (`commentByDays` to `inactiveByDays` old)
+  statusInactive1: "Status: To Update !"
   
-  # Label applied to inactive issues (older than inactiveUpdatedByDays)
-  statusInactive2: "Status: Inactive"
+  # Label applied to inactive issues (older than `inactiveByDays`)
+  statusInactive2: "2 weeks inactive"
   
-  # Issues with any of these labels will be skipped entirely
+  # Label applied when issue assignee needs help
+  statusHelpWanted: "Status: Help Wanted"
+
+  # Note: the following 'labelKey: "Label Name"' pairs can be edited to match your
+  # requirements. Issues with any of these labels will be skipped entirely. 
   exclude:
-    - "Draft"
-    - "ER"
-    - "Epic"
-    - "Dependency"
-    # - "Completed"
-    # - "good first issue"
+    - draft: "Draft"
+    - er: "ER"
+    - epic: "Epic"
+    - dependency: "Dependency"
+    - complexity0: "Complexity: Prework"
+    # As needed, add additional labels to exclude here
+    # - labelKey: "Label Name"
+
+
+# ==============================================================================
+# Label directory (Optional)
+# ==============================================================================
+# The path to your project's label directory YML file (relative to project root)
+# is shown below. The automation will use your project's preferred "Label Name" 
+# values if entered in this directory. 
+
+labelDirectoryPath: ".github/maintenance-actions/label-directory.yml"
+
+# Otherwise, the default values shown above in "Label configuration" will be used.
+
 
 # ==============================================================================
 # Bot configuration
 # ==============================================================================
 # Bot usernames whose comments should be minimized when they become outdated
-# Comments are minimized if they're between commentByDays and upperLimitDays old
+# Comments are minimized if they're between 'commentByDays' and 'upperLimitDays' old
 bots:
   - "github-actions[bot]"
   - "HackforLABot"
-  # Add your organization's bot usernames here
+  # As needed, add any bot usernames here
 
-# ==============================================================================
-# Label directory (optional)
-# ==============================================================================
-# Path to your project's label directory JSON file (relative to project root)
-# If this file exists, label names will be loaded from it instead of the 
-# labels section above. This is useful if you have a centralized label system.
-#
-# Example label-directory.json structure:
-# {
-#   "statusUpdated": "Status: Updated",
-#   "statusInactive1": "Status: To Update",
-#   "statusInactive2": "Status: Inactive"
-# }
-labelDirectoryPath: ".github/label-directory.json"
 
 # ==============================================================================
 # Comment template
 # ==============================================================================
-# Template for the comment posted to issues when they need updates
+# Template for the comment posted to issues needing updates
 # Available variables:
-#   ${assignees} - @-mentions of all assignees (e.g., "@user1, @user2")
-#   ${label}     - The label being applied (e.g., "Status: To Update")
-#   ${cutoffTime} - The formatted timestamp of when the issue was last updated
+#   ${assignees}          - @-mentions of all assignees (e.g., "@user1, @user2")
+#   ${label}              - The label being applied (e.g., "Status: To Update")
+#   ${cutoffTime}         - The formatted timestamp of when the issue was last updated
+#   ${statusHelpWanted}   - Label applied by assignee asking for help
 #
-# You can use Markdown formatting in the template
+# You can use Markdown formatting to edit this template
 commentTemplate: |
   Hello ${assignees}!
   
-  Please add an update comment using the below template (even if you have a pull request). Afterwards, remove the `${label}` label and add the `Status: Updated` label.
+  Please add an update comment using the below template (even if you have a pull request). Afterwards, remove the `${label}` label and add the `${statusUpdated}` label.
 
   1. Progress: "What is the current status of your issue? What have you completed and what is left to do?"
   2. Blockers: "Explain any difficulties or errors encountered."
@@ -99,36 +118,11 @@ commentTemplate: |
   4. ETA: "When do you expect this issue to be completed?"
   5. Pictures (optional): "Add any pictures of the visual changes made to the site so far."
 
-  If you need help, be sure to either: 1) place your issue in the "Questions/In Review" status column of the Project Board and ask for help at your next meeting; 2) put a `Status: Help Wanted` label on your issue and pull request; or 3) put up a request for assistance on the #hfla-site channel. Please note that including your questions in the issue comments- along with screenshots, if applicable- will help us to help you. [Here](https://github.com/hackforla/website/issues/1619#issuecomment-897315561) and [here](https://github.com/hackforla/website/issues/1908#issuecomment-877908152) are examples of well-formed questions.
+  If you need help, be sure to either: 1) place your issue in the "Questions/ In Review" status column of the Project Board and ask for help at your next meeting; 2) put a `${statusHelpWanted}` label on your issue and pull request; or 3) put up a request for assistance on the #hfla-site channel. Please note that including your questions in the issue comments- along with screenshots, if applicable- will help us to help you. [Here](https://github.com/hackforla/website/issues/1619#issuecomment-897315561) and [here](https://github.com/hackforla/website/issues/1908#issuecomment-877908152) are examples of well-formed questions.
 
-  <sub>You are receiving this comment because your last comment was before ${cutoffTime} PST.</sub>
+  <sub>You are receiving this comment because your last comment was before ${cutoffTime}.</sub>
   
-  ## What does this mean?
-  
-  Your issue was last updated before **${cutoffTime}**. To keep this issue active and show progress, please provide an update by:
-  
-  - 💬 Commenting on your progress
-  - ❓ Asking questions if you're blocked
-  - 📝 Updating the issue description with new information
-  
-  ## Why does this matter?
-  
-  Regular updates help:
-  - The team stay informed about progress
-  - Other contributors know the issue is actively being worked on
-  - Maintainers provide timely help if you're stuck
-  
-  ## What should I do?
-  
-  Simply add a comment with your current status. Even a brief update helps! For example:
-  - "Still working on this, making progress on X"
-  - "Blocked by Y, need help with Z"
-  - "PR is ready for review"
-  
-  Thanks for being part of the team! 🙌
-
-
-
+  Thanks for being part of the HfLA!
 
 
 # ==============================================================================
