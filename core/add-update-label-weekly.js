@@ -56,7 +56,7 @@ async function main({ g, c, labels: l, config: cfg }) {
   const issueNums = await getIssueNumsFromRepo();
 
   for await (let issueNum of issueNums) {
-    const timeline = await getTimeline(issueNum, github, context);
+    const timeline = await getTimeline(github, context, issueNum);
     const assignees = await getAssignees(issueNum);
     // Error catching 
     if (assignees.length === 0) {
