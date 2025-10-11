@@ -14,13 +14,14 @@ const yaml = require('js-yaml');
  * @throws {Error} If validation fails
  */
 function resolve({ 
-  projectRepoPath, 
+  projectRepoPath = process.env.GITHUB_WORKSPACE, 
   configPath, 
   defaults = {}, 
   overrides = {}, 
   requiredFields = [] 
 }) {
   const fullPath = path.join(projectRepoPath, configPath);
+  console.log(`Resolved full config path: ${fullPath}`);
   
   let projectConfig = {};
   

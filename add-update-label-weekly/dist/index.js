@@ -34439,6 +34439,7 @@ function resolve({
   requiredFields = [] 
 }) {
   const fullPath = path.join(projectRepoPath, configPath);
+  console.log(`Resolved full config path: ${fullPath}`);
   
   let projectConfig = {};
   
