@@ -34432,7 +34432,7 @@ const yaml = __nccwpck_require__(4281);
  * @throws {Error} If validation fails
  */
 function resolve({ 
-  projectRepoPath, 
+  projectRepoPath = process.env.GITHUB_WORKSPACE, 
   configPath, 
   defaults = {}, 
   overrides = {}, 
