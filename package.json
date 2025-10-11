@@ -1,9 +1,9 @@
 {
   "name": "maintenance-actions",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Centralized GitHub Actions for repository maintenance and automation across the organization.",
   "private": true,
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "ncc build add-update-label-weekly/index.js -o add-update-label-weekly/dist",
     "build:all": "npm run build",
@@ -30,8 +30,8 @@
   },
   "homepage": "https://github.com/t-will-gillis/maintenance-actions#readme",
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/github": "^6.0.0",
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
