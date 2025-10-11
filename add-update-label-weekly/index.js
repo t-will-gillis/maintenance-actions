@@ -1,8 +1,8 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const configResolver = require('../../shared/config-resolver');
-const labelResolver = require('../../shared/label-resolver');
-const addUpdateLabelWeekly = require('../../core/add-update-label-weekly');
+const configResolver = require('../shared/config-resolver');
+const labelResolver = require('../shared/label-resolver');
+const addUpdateLabelWeekly = require('../core/add-update-label-weekly');
 
 /**
  * Main entry point for the Add Update Label Weekly action
