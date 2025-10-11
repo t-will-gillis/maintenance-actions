@@ -149,11 +149,9 @@ Create `.github/workflows/add-update-label-weekly.yml` and add the following tex
 ```yaml
 name: Add Update Label Weekly
 
-# CUSTOMIZE the cron schedule to meet your project needs
-# Current cron is set to run Friday at 7:00 UTC every month except July and December
 on:
   schedule:
-    - cron: '0 7 * 1-6,8-11 5'
+    - cron: '0 7 * 1-6,8-11 5'   # CUSTOMIZE: Currently Fridays midnight PDT, exc. July and December
   workflow_dispatch:
 
 # Default token permissions
@@ -162,12 +160,13 @@ permissions:
   issues: read
 
 jobs:
-  check-staleness:
+  Add-Update-Label-Weekly:
     runs-on: ubuntu-latest
+    if: github.repository == 'your-project/repo-name'   # CUSTOMIZE: Change to your project repository name
     steps:
-      - uses: my_github_username/maintenance-actions/add-update-label-weekly@v1
+      - uses: hackforla/maintenance-actions/add-update-label-weekly@v1
         with:
-          github-token: ${{ secrets.PROJECT_GRAPHQL_TOKEN }}
+          github-token: ${{ secrets.PROJECT_GRAPHQL_TOKEN }}   # CUSTOMIZE: Change to your project secret / token
 ```
 
 #### Step 5: Create Token and Secret
@@ -176,7 +175,7 @@ Create a Personal Access Token with the scopes:
 - `repo` (full control)
 - `project` (full control)
 
-Add it to the secret `PROJECT_GRAPHQL_TOKEN` to use in the workflow.
+Add it to the secret (default is `PROJECT_GRAPHQL_TOKEN`) to use in the workflow.
 
 
 
@@ -188,7 +187,7 @@ Add it to the secret `PROJECT_GRAPHQL_TOKEN` to use in the workflow.
 | `config-path` | Path to config YAML in your repo | No | `.github/maintenance-actions/`<br>`add-update-label-weekly-config.yml` |
 | `updated-by-days` | Override: days for "current" threshold | No | From config |
 | `comment-by-days` | Override: days for first notice | No | From config |
-| `inactive-updated-by-days` | Override: days for second notice | No | From config |
+| `inactive-by-days` | Override: days for second notice | No | From config |
 | `target-status` | Override: Project Board status | No | From config |
 | `label-status-*` | Override: label names | No | From config |
 
@@ -197,6 +196,7 @@ Add it to the secret `PROJECT_GRAPHQL_TOKEN` to use in the workflow.
 
 # Monorepo Development Notes
 
+The following applies to the maintenance of the `hackforla/maintenance-actions` repo only.
 ### Setup
 
 ```bash

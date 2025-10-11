@@ -30,60 +30,53 @@ projectBoard:
 # ==============================================================================
 # Label configuration
 # ==============================================================================
-# This workflow uses issue labels both to identify issues that require review and 
+# This workflow uses issue labels, both to identify issues that require review and 
 # to exclude issues that do not. 
-
-# Labels are identified as key-value pairs, i.e.
-# 
-#   labelKey1: "Label Name 1"
-#   labelKey2: "Label Name 2"
-#   ...
 
 # The 'labelKey' values are used internally by the workflow and should not be 
 # changed, however the 'Label Name' values can be customized to match your project's 
-# preferred labels. 
-
-# The 'Label Name' values shown in this section will be used as the default 
-# values unless overridden by the optional `label-directory.yml` file.
-# See "Label directory (Optional)" following.
+# preferred labels via the `label-directory.yml` shown in "Label directory" below.
 
 labels:
   # Note: the following `status` 'labelKeys' are required. 
   # Label applied to issues that were recently updated (within `updatedByDays`)
-  statusUpdated: "Status: Updated"
+  - statusUpdated
   
   # Label applied to issues needing update (`commentByDays` to `inactiveByDays` old)
-  statusInactive1: "Status: To Update !"
+  - statusInactive1
   
   # Label applied to inactive issues (older than `inactiveByDays`)
-  statusInactive2: "2 weeks inactive"
+  - statusInactive2
   
   # Label applied when issue assignee needs help
-  statusHelpWanted: "Status: Help Wanted"
+  - statusHelpWanted
 
-  # Note: the following 'labelKey: "Label Name"' pairs can be edited to match your
-  # requirements. Issues with any of these labels will be skipped entirely. 
-  exclude:
-    - draft: "Draft"
-    - er: "ER"
-    - epic: "Epic"
-    - dependency: "Dependency"
-    - complexity0: "Complexity: Prework"
-    # As needed, add additional labels to exclude here
-    # - labelKey: "Label Name"
-
+# Note: the following 'labelKey's can be edited to match your
+# requirements. Issues with any of these 'labelKey's will be skipped entirely. 
+exclude:
+  - draft
+  - er
+  - epic
+  - dependency
+  - complexity0
+  # As needed, add additional 'label key's to exclude here
+  # - labelKey
 
 # ==============================================================================
-# Label directory (Optional)
+# Label directory 
 # ==============================================================================
+# The 'Label Name' values shown in this section will be used as the default 
+# values. The `label-directory.yml` file identifies labels as key-value pairs, i.e.
+
+#   labelKey1: "Label Name 1"
+#   labelKey2: "Label Name 2"
+#   etc.
+
 # The path to your project's label directory YML file (relative to project root)
-# is shown below. The automation will use your project's preferred "Label Name" 
-# values if entered in this directory. 
+# is shown below. The automation references 'labelKey's and correlates those to 
+# your project's preferred 'Label Name' values as entered in this directory. 
 
 labelDirectoryPath: ".github/maintenance-actions/label-directory.yml"
-
-# Otherwise, the default values shown above in "Label configuration" will be used.
-
 
 # ==============================================================================
 # Bot configuration
@@ -94,7 +87,6 @@ bots:
   - "github-actions[bot]"
   - "HackforLABot"
   # As needed, add any bot usernames here
-
 
 # ==============================================================================
 # Comment template
@@ -123,7 +115,6 @@ commentTemplate: |
   <sub>You are receiving this comment because your last comment was before ${cutoffTime}.</sub>
   
   Thanks for being part of the HfLA!
-
 
 # ==============================================================================
 # Advanced options
