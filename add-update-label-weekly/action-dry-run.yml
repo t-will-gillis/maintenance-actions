@@ -10,6 +10,10 @@ inputs:
     description: 'Path to the configuration file relative to repository root'
     required: false
     default: '.github/maintenance-actions/add-update-label-config.yml'
+  dry-run:
+    description: 'Run in dry-run mode (preview changes without making them)'
+    required: false
+    default: 'false'
 
 runs:
   using: 'node20'

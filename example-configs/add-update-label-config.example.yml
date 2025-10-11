@@ -28,53 +28,62 @@ projectBoard:
   #   statusFieldId: "PVTSSF_lADO..."
 
 # ==============================================================================
-# Label configuration
+# Label Configuration
 # ==============================================================================
-# This workflow uses issue labels, both to identify issues that require review and 
-# to exclude issues that do not. 
-
-# The 'labelKey' values are used internally by the workflow and should not be 
-# changed, however the 'Label Name' values can be customized to match your project's 
-# preferred labels via the `label-directory.yml` shown in "Label directory" below.
+# This workflow uses issue labels to both:
+#   1. Identify issues that require review, and
+#   2. Exclude issues that do not.
+#
+# Because every project uses different labels, this workflow allows you to 
+# configure the labels it uses. 
+#
+# The workflow relies on 'label keys' to identify the purpose of each label. 
+# These keys should not be changed. The corresponding 'Label Name' values, 
+# however, should be customized to match the actual labels used in your project's 
+# GitHub repository.
 
 labels:
-  # Note: the following `status` 'labelKeys' are required. 
-  # Label applied to issues that were recently updated (within `updatedByDays`)
-  - statusUpdated
-  
-  # Label applied to issues needing update (`commentByDays` to `inactiveByDays` old)
-  - statusInactive1
-  
-  # Label applied to inactive issues (older than `inactiveByDays`)
-  - statusInactive2
-  
-  # Label applied when issue assignee needs help
-  - statusHelpWanted
 
-# Note: the following 'labelKey's can be edited to match your
-# requirements. Issues with any of these 'labelKey's will be skipped entirely. 
-exclude:
-  - draft
-  - er
-  - epic
-  - dependency
-  - complexity0
-  # As needed, add additional 'label key's to exclude here
-  # - labelKey
+  # Required labels
+  #
+  # The following label keys must be mapped to actual label names in your
+  # `label-directory.yml` file. These labels are used by the workflow to 
+  # identify issues needing updates and to apply appropriate labels.
+
+  required:
+    - statusUpdated
+    - statusInactive1
+    - statusInactive2
+    - statusHelpWanted
+
+  # Optional (exclude) labels
+  #
+  # The following labels are optional. The automation will skip over (exclude) 
+  # issues labeled with a label name corresponding with the label keys shown here.
+  # For example, if an issue has the "Draft" label, it will be excluded from the
+  # update check.
+  #
+  # You may add or remove label keys to this list as needed
+
+  exclude:
+    - draft
+    - er
+    - epic
+    - dependency
+    - complexity0
 
 # ==============================================================================
-# Label directory 
+# Label Directory
 # ==============================================================================
-# The 'Label Name' values shown in this section will be used as the default 
-# values. The `label-directory.yml` file identifies labels as key-value pairs, i.e.
-
+# The `label-directory.yml` file defines the mapping between 'label keys' and 
+# actual 'Label Name' values, using key-value pairs such as:
+#
 #   labelKey1: "Label Name 1"
 #   labelKey2: "Label Name 2"
-#   etc.
-
-# The path to your project's label directory YML file (relative to project root)
-# is shown below. The automation references 'labelKey's and correlates those to 
-# your project's preferred 'Label Name' values as entered in this directory. 
+#
+# The path to your project's label directory file (relative to the project root) 
+# is defined below. The workflow uses this file to correlate label keys with 
+# the actual labels in your repository.
 
 labelDirectoryPath: ".github/maintenance-actions/label-directory.yml"
 
@@ -86,7 +95,7 @@ labelDirectoryPath: ".github/maintenance-actions/label-directory.yml"
 bots:
   - "github-actions[bot]"
   - "HackforLABot"
-  # As needed, add any bot usernames here
+  # As needed, add any additional bot usernames here
 
 # ==============================================================================
 # Comment template
@@ -96,7 +105,8 @@ bots:
 #   ${assignees}          - @-mentions of all assignees (e.g., "@user1, @user2")
 #   ${label}              - The label being applied (e.g., "Status: To Update")
 #   ${cutoffTime}         - The formatted timestamp of when the issue was last updated
-#   ${statusHelpWanted}   - Label applied by assignee asking for help
+#   ${statusUpdated}      - The "updated" label name from your label directory
+#   ${statusHelpWanted}   - The "help wanted" label name from your label directory
 #
 # You can use Markdown formatting to edit this template
 commentTemplate: |
@@ -110,11 +120,11 @@ commentTemplate: |
   4. ETA: "When do you expect this issue to be completed?"
   5. Pictures (optional): "Add any pictures of the visual changes made to the site so far."
 
-  If you need help, be sure to either: 1) place your issue in the "Questions/ In Review" status column of the Project Board and ask for help at your next meeting; 2) put a `${statusHelpWanted}` label on your issue and pull request; or 3) put up a request for assistance on the #hfla-site channel. Please note that including your questions in the issue comments- along with screenshots, if applicable- will help us to help you. [Here](https://github.com/hackforla/website/issues/1619#issuecomment-897315561) and [here](https://github.com/hackforla/website/issues/1908#issuecomment-877908152) are examples of well-formed questions.
+  If you need help, be sure to either: 1) place your issue in the "Questions/ In Review" status column of the Project Board and ask for help at your next meeting; 2) put a `${statusHelpWanted}` label on your issue and pull request; or 3) put up a request for assistance on the appropriate channel.
 
   <sub>You are receiving this comment because your last comment was before ${cutoffTime}.</sub>
   
-  Thanks for being part of the HfLA!
+  Thanks for being part of the team!
 
 # ==============================================================================
 # Advanced options
@@ -123,6 +133,3 @@ commentTemplate: |
 
 # # Custom timezone for cutoffTime display in comments (default: America/Los_Angeles)
 # timezone: "America/New_York"
-
-# # Dry run mode - log what would happen without making changes (default: false)
-# dryRun: false

@@ -1,52 +1,173 @@
+const core = require('@actions/core');
+const github = require('@actions/github');
+const configResolver = require('../../shared/config-resolver');
+const labelResolver = require('../../shared/label-resolver');
+const addUpdateLabelWeekly = require('../../core/add-update-label-weekly');
+
 /**
- * Entry point for "Add Update Label Weekly" workflow action
- * Called by actions/github-script with github and context already initialized
+ * Main entry point for the Add Update Label Weekly action
+ * Orchestrates configuration loading, label resolution, and workflow execution
  */
-
-const path = require('path');
-
-// Load action-specific config loader and logic
-const loadActionConfig = require('../core/add-update-label-weekly/config');
-const actionMain = require('../core/add-update-label-weekly/add-label');
-
-async function run({ github, context }) {
+async function run() {
   try {
-    console.log('Starting "Add Update Label Weekly" workflow');
+    console.log('='.repeat(60));
+    console.log('Add Update Label Weekly - Starting');
+    console.log('='.repeat(60));
     
-    // Get paths from environment (set by action.yml)
-    const projectRepoPath = process.env.PROJECT_REPO_PATH || path.join(process.cwd(), '../.project-repo');
+    // Get action inputs
+    const token = core.getInput('github-token', { required: true });
+    const configPath = core.getInput('config-path') || '.github/maintenance-actions/add-update-label-config.yml';
     
-    // Get configuration from environment variables
-    const configPath = process.env.CONFIG_PATH || '.github/maintenance-actions/add-update-label-weekly-config.yml';
-    const overrides = {
-      updatedByDays: process.env.OVERRIDE_UPDATED_BY_DAYS || undefined,
-      commentByDays: process.env.OVERRIDE_COMMENT_BY_DAYS || undefined,
-      inactiveUpdatedByDays: process.env.OVERRIDE_INACTIVE_UPDATED_BY_DAYS || undefined,
-      targetStatus: process.env.OVERRIDE_TARGET_STATUS || undefined,
-      labelStatusUpdated: process.env.OVERRIDE_LABEL_STATUS_UPDATED || undefined,
-      labelStatusInactive1: process.env.OVERRIDE_LABEL_STATUS_INACTIVE1 || undefined,
-      labelStatusInactive2: process.env.OVERRIDE_LABEL_STATUS_INACTIVE2 || undefined,
-    };
+    // Initialize GitHub client
+    const octokit = github.getOctokit(token);
+    const context = github.context;
     
-    const config = loadActionConfig({
+    // Get project repository path
+    const projectRepoPath = process.env.GITHUB_WORKSPACE;
+    if (!projectRepoPath) {
+      throw new Error('GITHUB_WORKSPACE environment variable not set');
+    }
+    
+    console.log(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
+    console.log(`Working directory: ${projectRepoPath}`);
+    console.log('');
+    
+    // Define workflow-specific defaults
+    const defaults = getDefaults();
+    
+    // Load and merge configuration
+    console.log('--- Configuration Loading ---');
+    const config = configResolver.resolve({
       projectRepoPath,
       configPath,
-      overrides,
+      defaults,
+      overrides: {}, // Can be populated from action inputs if needed
+      requiredFields: [
+        'timeframes.updatedByDays',
+        'timeframes.commentByDays',
+        'timeframes.inactiveByDays',
+        'timeframes.upperLimitDays',
+        'projectBoard.targetStatus',
+        'commentTemplate',
+      ],
     });
+    console.log('');
     
-    // Run the main logic
-    await actionMain({
-      g: github,
-      c: context,
-      config,
+    // Determine label directory path from config
+    const labelDirectoryPath = config.labelDirectoryPath || '.github/maintenance-actions/label-directory.yml';
+    
+    // Resolve label keys to label names
+    console.log('--- Label Resolution ---');
+    const labels = await labelResolver.resolve({
       projectRepoPath,
+      labelDirectoryPath,
+      requiredKeys: [
+        'statusUpdated',
+        'statusInactive1',
+        'statusInactive2',
+      ],
+      optionalKeys: [
+        'draft',
+        'er',
+        'epic',
+        'dependency',
+        'skillsIssueCompleted',
+        'statusHelpWanted',
+      ],
+    });
+    console.log('');
+    
+    // Execute the workflow
+    console.log('--- Workflow Execution ---');
+    console.log('Starting issue staleness check...');
+    console.log('');
+    
+    await addUpdateLabelWeekly({
+      g: octokit,
+      c: context,
+      labels,
+      config,
     });
     
-    console.log('Action completed successfully');
+    console.log('');
+    console.log('='.repeat(60));
+    console.log('Add Update Label Weekly - Completed Successfully');
+    console.log('='.repeat(60));
+    
   } catch (error) {
-    console.error('Action failed:', error);
-    throw error; // Re-throw so github-script marks the action as failed
+    console.error('');
+    console.error('='.repeat(60));
+    console.error('Add Update Label Weekly - Failed');
+    console.error('='.repeat(60));
+    console.error('Error details:', error.message);
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+    core.setFailed(`Action failed: ${error.message}`);
   }
 }
 
-module.exports = run;
+/**
+ * Returns default configuration for the Add Update Label Weekly workflow
+ * @returns {Object} Default configuration
+ */
+function getDefaults() {
+  return {
+    timeframes: {
+      updatedByDays: 3,      // Issues updated within this many days are considered current
+      commentByDays: 7,      // Issues not updated for this many days are prompted for an update
+      inactiveByDays: 14,    // Issues not updated for this many days are marked as inactive
+      upperLimitDays: 30,    // Bot comments older than this are not checked (to reduce API calls)
+    },
+    
+    projectBoard: {
+      targetStatus: 'In progress (actively working)',
+    },
+    
+    labels: {
+      exclude: [
+        'draft',
+        'er',
+        'epic',
+        'dependency',
+        'skillsIssueCompleted',
+      ],
+    },
+    
+    bots: [
+      'github-actions[bot]',
+      'HackforLABot',
+    ],
+    
+    timezone: 'America/Los_Angeles',
+    
+    commentTemplate: getDefaultCommentTemplate(),
+    
+    labelDirectoryPath: '.github/maintenance-actions/label-directory.yml',
+  };
+}
+
+/**
+ * Returns the default comment template
+ * @returns {string} Comment template with placeholders
+ */
+function getDefaultCommentTemplate() {
+  return `Hello \${assignees}!
+  
+Please add an update comment using the below template (even if you have a pull request). Afterwards, remove the \`\${label}\` label and add the \`\${statusUpdated}\` label.
+
+1. Progress: "What is the current status of your issue? What have you completed and what is left to do?"
+2. Blockers: "Explain any difficulties or errors encountered."
+3. Availability: "How much time will you have this week to work on this issue?"
+4. ETA: "When do you expect this issue to be completed?"
+5. Pictures (optional): "Add any pictures of the visual changes made to the site so far."
+
+If you need help, be sure to either: 1) place your issue in the "Questions/ In Review" status column of the Project Board and ask for help at your next meeting; 2) put a \`\${statusHelpWanted}\` label on your issue and pull request; or 3) put up a request for assistance on the #hfla-site channel. Please note that including your questions in the issue comments- along with screenshots, if applicable- will help us to help you. [Here](https://github.com/hackforla/website/issues/1619#issuecomment-897315561) and [here](https://github.com/hackforla/website/issues/1908#issuecomment-877908152) are examples of well-formed questions.
+
+<sub>You are receiving this comment because your last comment was before \${cutoffTime}.</sub>
+
+Thanks for being part of the HfLA!`;
+}
+
+// Run the action
+run();
