@@ -5,6 +5,8 @@
   "private": true,
   "main": "index.js",
   "scripts": {
+    "build": "ncc build add-update-label-weekly/index.js -o add-update-label-weekly/dist",
+    "build:all": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "echo \"Add linting script here\"",
     "format": "echo \"Add formatting script here\""
@@ -33,8 +35,7 @@
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.10.0"
+    "@vercel/ncc": "^0.38.1"
   },
   "engines": {
     "node": ">=20.0.0"
