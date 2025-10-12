@@ -5,23 +5,23 @@ const yaml = require('js-yaml');
 /**
  * Resolves configuration by merging defaults, project config, and overrides
  * @param {Object} options
- * @param {string} options.projectRepoPath - Path to the project repository
- * @param {string} options.configPath - Relative path to config file
- * @param {Object} options.defaults - Default configuration values
- * @param {Object} options.overrides - Runtime overrides (from action inputs)
- * @param {Array<string>} options.requiredFields - Dot-notation paths that must exist
- * @returns {Object} Merged and validated configuration
- * @throws {Error} If validation fails
+ * @param {string} options.projectRepoPath       - Path to the project repository
+ * @param {string} options.configPath            - Relative path to config file
+ * @param {Object} options.defaults              - Default configuration values
+ * @param {Object} options.overrides             - Runtime overrides (from action inputs)
+ * @param {Array<string>} options.requiredFields - Required fields in dot-notation
+ * @returns {Object}                             - Merged and validated configuration
  */
-function resolve({ 
+function resolveConfigs({ 
   projectRepoPath = process.env.GITHUB_WORKSPACE, 
   configPath, 
   defaults = {}, 
   overrides = {}, 
   requiredFields = [] 
 }) {
+
+  // Construct full path to config file
   const fullPath = path.join(projectRepoPath, configPath);
-  console.log(`Resolved full config path: ${fullPath}`);
   
   let projectConfig = {};
   
@@ -30,17 +30,17 @@ function resolve({
     try {
       const fileContents = fs.readFileSync(fullPath, 'utf8');
       projectConfig = yaml.load(fileContents) || {};
-      console.log(`Loaded configuration from: ${configPath}`);
+      console.log(`✅ Loaded configuration from: ${configPath}`);
     } catch (error) {
       if (error.name === 'YAMLException') {
         throw new Error(
-          `Failed to parse configuration YAML at ${configPath}: ${error.message}`
+          `❌ Failed to parse configuration YAML at ${configPath}: ${error.message}`
         );
       }
       throw error;
     }
   } else {
-    console.log(`Configuration file not found at ${configPath}, using defaults only`);
+    console.log(`⚠️ Configuration file not found at ${configPath}, using defaults only`);
   }
   
   // Deep merge: defaults < projectConfig < overrides
@@ -88,9 +88,8 @@ function deepMerge(...objects) {
 
 /**
  * Validates that required fields exist in the config
- * @param {Object} config - Configuration object to validate
+ * @param {Object} config                - Configuration object to validate
  * @param {Array<string>} requiredFields - Array of dot-notation field paths
- * @throws {Error} If any required fields are missing
  */
 function validateRequiredFields(config, requiredFields) {
   const missing = [];
@@ -116,19 +115,19 @@ function validateRequiredFields(config, requiredFields) {
   
   if (missing.length > 0) {
     throw new Error(
-      `Configuration validation failed. Missing required fields:\n` +
+      `❌ Config validation failed. Missing required fields:\n` +
       `  ${missing.join('\n  ')}\n` +
-      `Please ensure your configuration file includes these fields.`
+      `   ⮡  Provide required fields as shown in the config files`
     );
   }
   
-  console.log(`✓ Configuration validation passed (${requiredFields.length} required fields checked)`);
+  console.log(`✅ Resolved required configuration fields`);
 }
 
 /**
  * Removes sensitive data from config for logging
- * @param {Object} config - Configuration object
- * @returns {Object} Sanitized config
+ * @param {Object} config     - Configuration object
+ * @returns {Object}          - Sanitized config
  */
 function sanitizeForLogging(config) {
   const sanitized = JSON.parse(JSON.stringify(config));
@@ -150,4 +149,4 @@ function sanitizeForLogging(config) {
   return sanitized;
 }
 
-module.exports = { resolve, deepMerge, validateRequiredFields };
+module.exports = { resolveConfigs, deepMerge, validateRequiredFields };

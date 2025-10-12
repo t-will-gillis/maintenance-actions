@@ -1,0 +1,20 @@
+name: 'Move Closed Issues'
+description: 'Moves closed issues to a specified Project Board status column based on their labels'
+author: 'Hack for LA'
+
+inputs:
+  github-token:
+    description: 'GitHub token with permissions to read issues and manage labels'
+    required: true
+  config-path:
+    description: 'Path to the configuration file relative to repository root'
+    required: false
+    default: '.github/maintenance-actions/move-closed-issues-config.yml'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'archive'
+  color: 'blue'

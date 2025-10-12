@@ -36759,8 +36759,8 @@ module.exports = parseParams
 var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
 const github = __nccwpck_require__(3228);
-const configResolver = __nccwpck_require__(9751);
-const labelResolver = __nccwpck_require__(2793);
+const resolveConfigs = __nccwpck_require__(9751);
+const resolveLabels = __nccwpck_require__(2793);
 const addUpdateLabelWeekly = __nccwpck_require__(602);
 
 /**
@@ -36796,7 +36796,7 @@ async function run() {
     
     // Load and merge configuration
     console.log('--- Configuration Loading ---');
-    const config = configResolver.resolve({
+    const config = resolveConfigs.resolve({
       projectRepoPath,
       configPath,
       defaults,
@@ -36817,7 +36817,7 @@ async function run() {
     
     // Resolve label keys to label names
     console.log('--- Label Resolution ---');
-    const labels = await labelResolver.resolve({
+    const labels = await resolveLabels.resolve({
       projectRepoPath,
       labelDirectoryPath,
       requiredKeys: [

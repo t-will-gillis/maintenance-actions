@@ -338,19 +338,21 @@ Available version strategies:
 
 ```
 maintenance-actions/
-├── workflows/                    # Workflow-specific entry points
+├── workflows/                          # Workflow-specific entry points
 │   └── add-update-label-weekly/
-│       ├── action.yml           # Action definition
-│       └── index.js             # Orchestration layer
-├── core/                        # Business logic (minimal changes from originals)
+│       ├── action.yml                  # Action definition
+│       └── index.js                    # Orchestration layer
+├── core/                               # Business logic (minimal changes from originals)
 │   └── add-update-label-weekly.js
-├── shared/                      # Reusable utilities
-│   ├── config-resolver.js
-│   ├── label-resolver.js
+├── shared/                             # Reusable utilities
 │   ├── get-timeline.js
 │   ├── find-linked-issue.js
-│   └── hide-issue-comment.js
-├── example-configs/             # Example configuration files
+│   ├── hide-issue-comment.js
+│   ├── query-issue-info.js
+│   ├── resolve-configs.js              # Resolve config files
+│   └── resolve-labels.js               # Resolve label files
+│
+├── example-configs/                    # Example configuration files
 │   ├── add-update-label-weekly-config.example.yml
 │   └── label-directory.example.yml
 └── package.json
@@ -363,7 +365,7 @@ To add a new workflow following this architecture:
 1. Create `workflows/[workflow-name]/action.yml`
 2. Create `workflows/[workflow-name]/index.js` (orchestration)
 3. Create `core/[workflow-name].js` (business logic)
-4. Reuse `shared/config-resolver.js` and `shared/label-resolver.js`
+4. Reuse `shared/resolve-configs.js` and `shared/resolve-labels.js`
 5. Add example configs to `example-configs/`
 
 ## Support

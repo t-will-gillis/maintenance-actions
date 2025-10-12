@@ -22,10 +22,10 @@ var upperLimitCutoffTime;
  * or 2.) assigning an assignee to the issue. If the last update was not between 7 to 14 days ago, apply the
  * appropriate label and request an update. However, if the assignee has submitted a PR that will fix the issue
  * regardless of when, all update-related labels should be removed.
- * @param {Object} g - GitHub object from actions/github-script
- * @param {Object} c - context object from actions/github-script
- * @param {Object} l - Resolved label mappings (label keys to label names)
- * @param {Object} cfg - Configuration object
+ * @param {Object} g     - GitHub object from actions/github-script
+ * @param {Object} c     - context object from actions/github-script
+ * @param {Object} l     - Resolved label mappings (label keys to label names)
+ * @param {Object} cfg   - Configuration object
  */
 async function main({ g, c, labels: l, config: cfg }) {
   github = g;
@@ -33,12 +33,13 @@ async function main({ g, c, labels: l, config: cfg }) {
   labels = l;
   config = cfg;
 
-  // Calculate cutoff times from config
+  // Calculate cutoff times from config settings
   const updatedByDays = config.timeframes.updatedByDays;
   const commentByDays = config.timeframes.commentByDays;
-  const inactiveUpdatedByDays = config.timeframes.inactiveByDays;
+  const inactiveByDays = config.timeframes.inactiveByDays;
   const upperLimitDays = config.timeframes.upperLimitDays;
 
+ 
   threeDayCutoffTime = new Date();
   threeDayCutoffTime.setDate(threeDayCutoffTime.getDate() - updatedByDays);
   
@@ -47,7 +48,7 @@ async function main({ g, c, labels: l, config: cfg }) {
   sevenDayCutoffTime.setMinutes(sevenDayCutoffTime.getMinutes() + 10);     //  Set cutoff time to slightly less than 7 days ago
   
   fourteenDayCutoffTime = new Date();
-  fourteenDayCutoffTime.setDate(fourteenDayCutoffTime.getDate() - inactiveUpdatedByDays);
+  fourteenDayCutoffTime.setDate(fourteenDayCutoffTime.getDate() - inactiveByDays);
   
   upperLimitCutoffTime = new Date();
   upperLimitCutoffTime.setDate(upperLimitCutoffTime.getDate() - upperLimitDays);

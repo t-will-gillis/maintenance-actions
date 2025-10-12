@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const configResolver = require('../shared/config-resolver');
-const labelResolver = require('../shared/label-resolver');
+const resolveConfigs = require('../shared/resolve-configs');
+const resolveLabels = require('../shared/resolve-labels');
 const addUpdateLabelWeekly = require('../core/add-update-label-weekly');
 
 /**
@@ -37,7 +37,7 @@ async function run() {
     
     // Load and merge configuration
     console.log('--- Configuration Loading ---');
-    const config = configResolver.resolve({
+    const config = resolveConfigs.resolve({
       projectRepoPath,
       configPath,
       defaults,
@@ -58,7 +58,7 @@ async function run() {
     
     // Resolve label keys to label names
     console.log('--- Label Resolution ---');
-    const labels = await labelResolver.resolve({
+    const labels = await resolveLabels.resolve({
       projectRepoPath,
       labelDirectoryPath,
       requiredKeys: [

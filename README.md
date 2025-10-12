@@ -17,12 +17,12 @@ maintenance-actions/
 │   └── add-update-label-weekly.js      # "Add Update Label Weekly" files
 │
 ├── shared/                             # Shared utilities across all actions
-│   ├── config-resolver.js
-│   ├── label-resolver.js
 │   ├── get-timeline.js
 │   ├── find-linked-issue.js
 │   ├── hide-issue-comment.js
-│   └── query-issue-info.js
+│   ├── query-issue-info.js
+│   ├── resolve-configs.js              # Resolve config files
+│   └── resolve-labels.js               # Resolve label files
 │
 ├── example-configs/                    # Example configuration files
 │   ├── add-update-label-config.example.yml
