@@ -2,12 +2,12 @@
 # Label Directory
 # ==============================================================================
 #
-# If this file does not already exist in your repo, then copy the file named
-# `label-directory.example.yml` to `.github/maintenance-actions/label-directory.yml`.
-# Otherwise, continue editing your existing `label-directory.yml` file.
+# If this file does not already exist in your repo, copy this example file
+# to `.github/maintenance-actions/label-directory.yml`. If you have copied this 
+# file previously, continue editing your existing `label-directory.yml` file.
 # 
-# This file maps label keys (left side, used internally by the workflow) to the 
-# actual label names used in your GitHub repository (right side):
+# This file maps 'label keys' (left side, used internally by the workflow) to the 
+# actual 'label names' used in your GitHub repository (right side):
 #
 #   labelKey: "Actual Label Name in GitHub"
 #
@@ -40,15 +40,15 @@
 # 7. In case you missed it-  DO NOT CHANGE the label keys on the left side 
 
 
-complexity0: "Complexity: Prework"                       # mentioned in README
+complexity0: "Complexity: Prework"                       # AULW
 complexity1: "good first issue"
 complexity2: "Complexity: Small"
 complexity3: "Complexity: Medium"
 complexityMissing: "Complexity: Missing"
-dependency: "Dependency"                                 # mentioned in README
-draft: "Draft"                                           # mentioned in README
-epic: "epic"                                             # mentioned in README
-er: "ER"                                                 # mentioned in README
+dependency: "Dependency"                                 # AULW
+draft: "Draft"                                           # AULW
+epic: "epic"                                             # AULW
+er: "ER"                                                 # AULW
 featureAdministrative: "Feature: Administrative"
 featureAgenda: "feature: agenda"
 featureAnalytics: "Feature: Analytics"
@@ -70,8 +70,11 @@ roleUserResearch: "role: user research"
 size025pt: "size: 0.25pt"
 size05pt: "size: 0.5pt"
 sizeMissing: "size: missing"
-statusUpdated: "Status: Updated"                          # Required
-statusInactive1: "To Update !"                            # Required
-statusInactive2: "2 weeks inactive"                       # Required 
-statusHelpWanted: "Status: Help Wanted"                   # mentioned in README
+statusUpdated: "Status: Updated"                          # AULW Required
+statusInactive1: "To Update !"                            # AULW Required
+statusInactive2: "2 weeks inactive"                       # AULW Required
+statusHelpWanted: "Status: Help Wanted"                   # AULW
 skillsIssueCompleted: "Skills Issue Completed"
+
+# Workflows using these labels:
+# - "AULW" - Add Update Label Weekly
