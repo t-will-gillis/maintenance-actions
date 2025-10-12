@@ -7,8 +7,12 @@ Centralized GitHub Actions for repository maintenance and automation across the 
 ```markdown
 maintenance-actions/
 ├── add-update-label-weekly/            # "Add Update Label Weekly" workflow
+│   ├── dist/
+│   │   └── index.js
 │   ├── action.yml
 │   └── index.js
+│   
+
 │
 ├── check-pr-linked-issue/              # Future: PR validation action
 │   ├── action.yml
@@ -22,7 +26,7 @@ maintenance-actions/
 │
 ├── core/                               # Core business logic (one folder per workflow)
 │   │
-│   ├── add-update-label-weekly/        # "Add Update Label Weekly" files
+│   ├── add-update-label-weekly.js       # "Add Update Label Weekly" files
 │   │   ├── add-label.js                #    ⮡ Main logic 
 │   │   └── config.js                   #    ⮡ Project-specific config loader
 │   │
