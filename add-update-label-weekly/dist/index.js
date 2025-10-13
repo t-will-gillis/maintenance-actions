@@ -17,9 +17,9 @@ var labels;
 var config;
 
 // Time cutoff variables (set in main function based on config)
-var threeDayCutoffTime;
-var sevenDayCutoffTime;
-var fourteenDayCutoffTime;
+var updatedCutoffTime;
+var toUpdateCutoffTime;
+var inactiveCutoffTime;
 var upperLimitCutoffTime;
 
 /**
@@ -28,10 +28,10 @@ var upperLimitCutoffTime;
  * or 2.) assigning an assignee to the issue. If the last update was not between 7 to 14 days ago, apply the
  * appropriate label and request an update. However, if the assignee has submitted a PR that will fix the issue
  * regardless of when, all update-related labels should be removed.
- * @param {Object} g - GitHub object from actions/github-script
- * @param {Object} c - context object from actions/github-script
- * @param {Object} l - Resolved label mappings (label keys to label names)
- * @param {Object} cfg - Configuration object
+ * @param {Object} g     - GitHub object from actions/github-script
+ * @param {Object} c     - context object from actions/github-script
+ * @param {Object} l     - Resolved label mappings (label keys to label names)
+ * @param {Object} cfg   - Configuration object
  */
 async function main({ g, c, labels: l, config: cfg }) {
   github = g;
@@ -39,21 +39,22 @@ async function main({ g, c, labels: l, config: cfg }) {
   labels = l;
   config = cfg;
 
-  // Calculate cutoff times from config
+  // Calculate cutoff times from config settings
   const updatedByDays = config.timeframes.updatedByDays;
   const commentByDays = config.timeframes.commentByDays;
-  const inactiveUpdatedByDays = config.timeframes.inactiveByDays;
+  const inactiveByDays = config.timeframes.inactiveByDays;
   const upperLimitDays = config.timeframes.upperLimitDays;
 
-  threeDayCutoffTime = new Date();
-  threeDayCutoffTime.setDate(threeDayCutoffTime.getDate() - updatedByDays);
+ 
+  updatedCutoffTime = new Date();
+  updatedCutoffTime.setDate(updatedCutoffTime.getDate() - updatedByDays);
   
-  sevenDayCutoffTime = new Date();
-  sevenDayCutoffTime.setDate(sevenDayCutoffTime.getDate() - commentByDays);
-  sevenDayCutoffTime.setMinutes(sevenDayCutoffTime.getMinutes() + 10);     //  Set cutoff time to slightly less than 7 days ago
+  toUpdateCutoffTime = new Date();
+  toUpdateCutoffTime.setDate(toUpdateCutoffTime.getDate() - commentByDays);
+  toUpdateCutoffTime.setMinutes(toUpdateCutoffTime.getMinutes() + 10);     //  Set cutoff time to slightly less than 7 days ago
   
-  fourteenDayCutoffTime = new Date();
-  fourteenDayCutoffTime.setDate(fourteenDayCutoffTime.getDate() - inactiveUpdatedByDays);
+  inactiveCutoffTime = new Date();
+  inactiveCutoffTime.setDate(inactiveCutoffTime.getDate() - inactiveByDays);
   
   upperLimitCutoffTime = new Date();
   upperLimitCutoffTime.setDate(upperLimitCutoffTime.getDate() - upperLimitDays);
@@ -168,7 +169,11 @@ function isTimelineOutdated(timeline, issueNum, assignees) { // assignees is an 
 
     // If the event is a linked PR and the PR is closed, it will continue through the
     // rest of the conditions to receive the appropriate label.
-    else if(eventType === 'cross-referenced' && eventObj.source.issue.state === 'closed') {
+    else if(
+      eventType === 'cross-referenced' && 
+      eventObj.source?.issue?.pull_request &&
+      eventObj.source.issue.state === 'closed'
+    ) {
       console.log(`Issue #${issueNum}: Linked pull request has been closed.`);
     }
 
@@ -185,7 +190,7 @@ function isTimelineOutdated(timeline, issueNum, assignees) { // assignees is an 
     }
 
     // If this event is more than 7 days old but less than the upperLimitCutoffTime AND this event is a comment by the GitHub Actions Bot, then hide the comment as outdated.
-    if (isMomentRecent(eventObj.created_at, upperLimitCutoffTime) && !isMomentRecent(eventObj.created_at, sevenDayCutoffTime) && eventType === 'commented' && isCommentByBot(eventObj)) { 
+    if (isMomentRecent(eventObj.created_at, upperLimitCutoffTime) && !isMomentRecent(eventObj.created_at, toUpdateCutoffTime) && eventType === 'commented' && isCommentByBot(eventObj)) { 
       console.log(`Comment ${eventObj.node_id} is outdated (i.e. > 7 days old) and will be minimized.`);
       commentsToBeMinimized.push(eventObj.node_id); // retain node id so its associated comment can be minimized later
     }
@@ -193,29 +198,29 @@ function isTimelineOutdated(timeline, issueNum, assignees) { // assignees is an 
 
   minimizeComments(commentsToBeMinimized);
 
-  if (lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, threeDayCutoffTime)) { // if commented by assignee within 3 days
+  if (lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, updatedCutoffTime)) { // if commented by assignee within 3 days
     console.log(`Issue #${issueNum}: Commented by assignee within 3 days, retain '${labels.statusUpdated}' label`);
     return { result: false, labels: labels.statusUpdated } // retain (don't add) updated label, remove the other two
   }
 
-  if (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, threeDayCutoffTime)) { // if an assignee was assigned within 3 days
+  if (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, updatedCutoffTime)) { // if an assignee was assigned within 3 days
     console.log(`Issue #${issueNum}: Assigned to assignee within 3 days, no update-related labels should be used`);
     return { result: false, labels: '' } // remove all three labels
   }
 
-  if ((lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, sevenDayCutoffTime)) || (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, sevenDayCutoffTime))) { // if updated within 7 days
-    if ((lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, sevenDayCutoffTime))) {
+  if ((lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, toUpdateCutoffTime)) || (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, toUpdateCutoffTime))) { // if updated within 7 days
+    if ((lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, toUpdateCutoffTime))) {
       console.log(`Issue #${issueNum}: Commented by assignee between 3 and 7 days, no update-related labels should be used; timestamp: ${lastCommentTimestamp}`)
-    } else if (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, sevenDayCutoffTime)) {
+    } else if (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, toUpdateCutoffTime)) {
       console.log(`Issue #${issueNum}: Assigned between 3 and 7 days, no update-related labels should be used; timestamp: ${lastAssignedTimestamp}`)
     }
     return { result: false, labels: '' } // remove all three labels
   }
 
-  if ((lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, fourteenDayCutoffTime)) || (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, fourteenDayCutoffTime))) { // if last comment was between 7-14 days, or no comment but an assginee was assigned during this period, issue is outdated and add needs update label
-    if ((lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, fourteenDayCutoffTime))) {
+  if ((lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, inactiveCutoffTime)) || (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, inactiveCutoffTime))) { // if last comment was between 7-14 days, or no comment but an assginee was assigned during this period, issue is outdated and add needs update label
+    if ((lastCommentTimestamp && isMomentRecent(lastCommentTimestamp, inactiveCutoffTime))) {
       console.log(`Issue #${issueNum}: Commented by assignee between 7 and 14 days, use '${labels.statusInactive1}' label; timestamp: ${lastCommentTimestamp}`)
-    } else if (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, fourteenDayCutoffTime)) {
+    } else if (lastAssignedTimestamp && isMomentRecent(lastAssignedTimestamp, inactiveCutoffTime)) {
       console.log(`Issue #${issueNum}: Assigned between 7 and 14 days, use '${labels.statusInactive1}' label; timestamp: ${lastAssignedTimestamp}`)
     }
     return { result: true, labels: labels.statusInactive1 } // outdated, add needs update label
@@ -243,10 +248,8 @@ async function removeLabels(issueNum, ...labelsToRemove) {
       });
       console.log(` '${label}' label has been removed`);
     } catch (err) {
-      if (err.status === 404) {
-        console.log(` '${label}' label not found, no need to remove`);
-      } else {
-        console.error(`Function failed to remove labels. Please refer to the error below: \n `, err);
+      if (!err.status === 404) {
+        console.error(` ⚠️ Function failed to remove label. Please refer to the error below: \n `, err);
       }
     }
   }
@@ -269,7 +272,7 @@ async function addLabels(issueNum, ...labelsToAdd) {
     console.log(` '${labelsToAdd}' label has been added`);
     // If an error is found, the rest of the script does not stop.
   } catch (err) {
-    console.error(`Function failed to add labels. Please refer to the error below: \n `, err);
+    console.error(` ⚠️ Function failed to add labels. Please refer to the error below: \n `, err);
   }
 }
 
@@ -277,15 +280,16 @@ async function postComment(issueNum, assignees, labelString) {
   try {
     const assigneeString = createAssigneeString(assignees);
     const instructions = formatComment(assigneeString, labelString);
-    // https://octokit.github.io/rest.js/v20/#issues-create-comment
-    await github.rest.issues.createComment({
+    // https://docs.github.com/en/rest/issues/comments?apiVersion=2022-11-28#create-an-issue-comment
+    await github.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: issueNum,
       body: instructions,
     });
+    console.log(` ✔️ Update request comment has been posted to issue #${issueNum}`);
   } catch (err) {
-    console.error(`Function failed to post comments. Please refer to the error below: \n `, err);
+    console.error(` ⚠️ Function failed to post comment to issue #${issueNum}. Please refer to the error below: \n `, err);
   }
 }
 
@@ -320,7 +324,7 @@ async function getAssignees(issueNum) {
     const assigneesLogins = filterForAssigneesLogins(assigneesData);
     return assigneesLogins;
   } catch (err) {
-    console.error(`Function failed to get assignees. Please refer to the error below: \n `, err);
+    console.error(`🛑 Function failed to get assignees from issue #${issueNum}. Please refer to the error below: \n `, err);
     return null;
   }
 }
@@ -347,7 +351,7 @@ function formatComment(assignees, labelString) {
     timeStyle: 'short',
     timeZone: config.timezone || 'America/Los_Angeles',
   };
-  const cutoffTimeString = threeDayCutoffTime.toLocaleString('en-US', options);
+  const cutoffTimeString = updatedCutoffTime.toLocaleString('en-US', options);
   
   let completedInstructions = config.commentTemplate
     .replace(/\$\{assignees\}/g, assignees)
@@ -360,7 +364,7 @@ function formatComment(assignees, labelString) {
 }
 
 function isCommentByBot(data) {
-  // Use bot list from config
+  // Use bot list from config, default to 'github-actions[bot]'
   const botLogins = config.bots || ['github-actions[bot]'];
   
   // If the comment includes the MARKER, return false so it is not minimized
@@ -34413,165 +34417,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 9751:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const fs = __nccwpck_require__(9896);
-const path = __nccwpck_require__(6928);
-const yaml = __nccwpck_require__(4281);
-
-/**
- * Resolves configuration by merging defaults, project config, and overrides
- * @param {Object} options
- * @param {string} options.projectRepoPath - Path to the project repository
- * @param {string} options.configPath - Relative path to config file
- * @param {Object} options.defaults - Default configuration values
- * @param {Object} options.overrides - Runtime overrides (from action inputs)
- * @param {Array<string>} options.requiredFields - Dot-notation paths that must exist
- * @returns {Object} Merged and validated configuration
- * @throws {Error} If validation fails
- */
-function resolve({ 
-  projectRepoPath = process.env.GITHUB_WORKSPACE, 
-  configPath, 
-  defaults = {}, 
-  overrides = {}, 
-  requiredFields = [] 
-}) {
-  const fullPath = path.join(projectRepoPath, configPath);
-  console.log(`Resolved full config path: ${fullPath}`);
-  
-  let projectConfig = {};
-  
-  // Load project config if it exists
-  if (fs.existsSync(fullPath)) {
-    try {
-      const fileContents = fs.readFileSync(fullPath, 'utf8');
-      projectConfig = yaml.load(fileContents) || {};
-      console.log(`Loaded configuration from: ${configPath}`);
-    } catch (error) {
-      if (error.name === 'YAMLException') {
-        throw new Error(
-          `Failed to parse configuration YAML at ${configPath}: ${error.message}`
-        );
-      }
-      throw error;
-    }
-  } else {
-    console.log(`Configuration file not found at ${configPath}, using defaults only`);
-  }
-  
-  // Deep merge: defaults < projectConfig < overrides
-  const config = deepMerge(defaults, projectConfig, overrides);
-  
-  // Log the final configuration (excluding sensitive data)
-  console.log('Final configuration:');
-  console.log(JSON.stringify(sanitizeForLogging(config), null, 2));
-  
-  // Validate required fields
-  validateRequiredFields(config, requiredFields);
-  
-  return config;
-}
-
-/**
- * Deep merges multiple objects, with later objects overriding earlier ones
- * @param {...Object} objects - Objects to merge
- * @returns {Object} Merged object
- */
-function deepMerge(...objects) {
-  const result = {};
-  
-  for (const obj of objects) {
-    if (!obj) continue;
-    
-    for (const key in obj) {
-      if (!obj.hasOwnProperty(key)) continue;
-      
-      const value = obj[key];
-      
-      // If value is an object (but not array or null), recurse
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        result[key] = deepMerge(result[key] || {}, value);
-      } 
-      // For arrays and primitives, override completely
-      else if (value !== undefined) {
-        result[key] = value;
-      }
-    }
-  }
-  
-  return result;
-}
-
-/**
- * Validates that required fields exist in the config
- * @param {Object} config - Configuration object to validate
- * @param {Array<string>} requiredFields - Array of dot-notation field paths
- * @throws {Error} If any required fields are missing
- */
-function validateRequiredFields(config, requiredFields) {
-  const missing = [];
-  
-  for (const field of requiredFields) {
-    const keys = field.split('.');
-    let value = config;
-    
-    // Navigate through nested structure
-    for (const key of keys) {
-      if (value === null || value === undefined) {
-        value = undefined;
-        break;
-      }
-      value = value[key];
-    }
-    
-    // Check if value exists and is not empty
-    if (value === undefined || value === null || value === '') {
-      missing.push(field);
-    }
-  }
-  
-  if (missing.length > 0) {
-    throw new Error(
-      `Configuration validation failed. Missing required fields:\n` +
-      `  ${missing.join('\n  ')}\n` +
-      `Please ensure your configuration file includes these fields.`
-    );
-  }
-  
-  console.log(`✓ Configuration validation passed (${requiredFields.length} required fields checked)`);
-}
-
-/**
- * Removes sensitive data from config for logging
- * @param {Object} config - Configuration object
- * @returns {Object} Sanitized config
- */
-function sanitizeForLogging(config) {
-  const sanitized = JSON.parse(JSON.stringify(config));
-  
-  // Remove or redact sensitive fields
-  const sensitiveKeys = ['token', 'password', 'secret', 'key'];
-  
-  function redactSensitive(obj) {
-    for (const key in obj) {
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        redactSensitive(obj[key]);
-      } else if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
-        obj[key] = '[REDACTED]';
-      }
-    }
-  }
-  
-  redactSensitive(sanitized);
-  return sanitized;
-}
-
-module.exports = { resolve, deepMerge, validateRequiredFields };
-
-/***/ }),
-
 /***/ 8733:
 /***/ ((module) => {
 
@@ -34690,92 +34535,6 @@ module.exports = minimizeIssueComment;
 
 /***/ }),
 
-/***/ 2793:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const fs = __nccwpck_require__(9896);
-const path = __nccwpck_require__(6928);
-const yaml = __nccwpck_require__(4281);
-
-/**
- * Resolves label keys to actual label names from a project's label directory
- * @param {Object} options
- * @param {string} options.projectRepoPath - Path to the project repository
- * @param {string} options.labelDirectoryPath - Relative path to label-directory.yml
- * @param {Array<string>} options.requiredKeys - Label keys that must exist
- * @param {Array<string>} options.optionalKeys - Label keys that are optional
- * @returns {Object} Mapping of label keys to label names
- * @throws {Error} If label directory not found or required keys missing
- */
-async function resolve({ 
-  projectRepoPath, 
-  labelDirectoryPath, 
-  requiredKeys = [], 
-  optionalKeys = [] 
-}) {
-  const fullPath = path.join(projectRepoPath, labelDirectoryPath);
-  
-  // Check if label directory exists
-  if (!fs.existsSync(fullPath)) {
-    throw new Error(
-      `Label directory not found at: ${labelDirectoryPath}\n` +
-      `Expected location: ${fullPath}\n` +
-      `Please ensure your project has a label directory file.`
-    );
-  }
-  
-  // Load and parse YAML
-  let labelDirectory;
-  try {
-    const fileContents = fs.readFileSync(fullPath, 'utf8');
-    labelDirectory = yaml.load(fileContents);
-    
-    if (!labelDirectory || typeof labelDirectory !== 'object') {
-      throw new Error('Label directory file is empty or invalid');
-    }
-  } catch (error) {
-    if (error.name === 'YAMLException') {
-      throw new Error(
-        `Failed to parse label directory YAML at ${labelDirectoryPath}: ${error.message}`
-      );
-    }
-    throw error;
-  }
-  
-  console.log(`Loaded label directory from: ${labelDirectoryPath}`);
-  console.log(`Available label keys: ${Object.keys(labelDirectory).join(', ')}`);
-  
-  // Validate required keys exist
-  const missingKeys = requiredKeys.filter(key => !labelDirectory[key]);
-  if (missingKeys.length > 0) {
-    throw new Error(
-      `Missing required label keys in ${labelDirectoryPath}: ${missingKeys.join(', ')}\n` +
-      `Required keys: ${requiredKeys.join(', ')}\n` +
-      `Found keys: ${Object.keys(labelDirectory).join(', ')}`
-    );
-  }
-  
-  // Build resolved labels object
-  const resolvedLabels = {};
-  const allKeys = [...requiredKeys, ...optionalKeys];
-  
-  allKeys.forEach(key => {
-    if (labelDirectory[key]) {
-      resolvedLabels[key] = labelDirectory[key];
-      console.log(`  ${key} → "${labelDirectory[key]}"`);
-    } else if (optionalKeys.includes(key)) {
-      console.log(`  ${key} → (not defined, skipping)`);
-    }
-  });
-  
-  console.log(`Successfully resolved ${Object.keys(resolvedLabels).length} labels`);
-  return resolvedLabels;
-}
-
-module.exports = { resolve };
-
-/***/ }),
-
 /***/ 1563:
 /***/ ((module) => {
 
@@ -34842,6 +34601,249 @@ async function queryIssueInfo(github, context, issueNum) {
 }
 
 module.exports = queryIssueInfo;
+
+/***/ }),
+
+/***/ 9666:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const fs = __nccwpck_require__(9896);
+const path = __nccwpck_require__(6928);
+const yaml = __nccwpck_require__(4281);
+
+/**
+ * Resolves configuration by merging defaults, project config, and overrides
+ * @param {Object} options
+ * @param {string} options.projectRepoPath       - Path to the project repository
+ * @param {string} options.configPath            - Relative path to config file
+ * @param {Object} options.defaults              - Default configuration values
+ * @param {Object} options.overrides             - Runtime overrides (from action inputs)
+ * @param {Array<string>} options.requiredFields - Required fields in dot-notation
+ * @returns {Object}                             - Merged and validated configuration
+ */
+function resolveConfigs({ 
+  projectRepoPath = process.env.GITHUB_WORKSPACE, 
+  configPath, 
+  defaults = {}, 
+  overrides = {}, 
+  requiredFields = [] 
+}) {
+
+  // Construct full path to config file
+  const fullPath = path.join(projectRepoPath, configPath);
+  
+  let projectConfig = {};
+  
+  // Load project config if it exists
+  if (fs.existsSync(fullPath)) {
+    try {
+      const fileContents = fs.readFileSync(fullPath, 'utf8');
+      projectConfig = yaml.load(fileContents) || {};
+      console.log(`✅ Loaded configuration from: ${configPath}`);
+    } catch (error) {
+      if (error.name === 'YAMLException') {
+        throw new Error(
+          `❌ Failed to parse configuration YAML at ${configPath}: ${error.message}`
+        );
+      }
+      throw error;
+    }
+  } else {
+    console.log(`⚠️ Configuration file not found at ${configPath}, using defaults only`);
+  }
+  
+  // Deep merge: defaults < projectConfig < overrides
+  const config = deepMerge(defaults, projectConfig, overrides);
+  
+  // Log the final configuration (excluding sensitive data)
+  console.log('Final configuration:');
+  console.log(JSON.stringify(sanitizeForLogging(config), null, 2));
+  
+  // Validate required fields
+  validateRequiredFields(config, requiredFields);
+  
+  return config;
+}
+
+/**
+ * Deep merges multiple objects, with later objects overriding earlier ones
+ * @param {...Object} objects - Objects to merge
+ * @returns {Object} Merged object
+ */
+function deepMerge(...objects) {
+  const result = {};
+  
+  for (const obj of objects) {
+    if (!obj) continue;
+    
+    for (const key in obj) {
+      if (!obj.hasOwnProperty(key)) continue;
+      
+      const value = obj[key];
+      
+      // If value is an object (but not array or null), recurse
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = deepMerge(result[key] || {}, value);
+      } 
+      // For arrays and primitives, override completely
+      else if (value !== undefined) {
+        result[key] = value;
+      }
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Validates that required fields exist in the config
+ * @param {Object} config                - Configuration object to validate
+ * @param {Array<string>} requiredFields - Array of dot-notation field paths
+ */
+function validateRequiredFields(config, requiredFields) {
+  const missing = [];
+  
+  for (const field of requiredFields) {
+    const keys = field.split('.');
+    let value = config;
+    
+    // Navigate through nested structure
+    for (const key of keys) {
+      if (value === null || value === undefined) {
+        value = undefined;
+        break;
+      }
+      value = value[key];
+    }
+    
+    // Check if value exists and is not empty
+    if (value === undefined || value === null || value === '') {
+      missing.push(field);
+    }
+  }
+  
+  if (missing.length > 0) {
+    throw new Error(
+      `❌ Config validation failed. Missing required fields:\n` +
+      `  ${missing.join('\n  ')}\n` +
+      `   ⮡  Provide required fields as shown in the config files`
+    );
+  }
+  
+  console.log(`✅ Resolved required configuration fields`);
+}
+
+/**
+ * Removes sensitive data from config for logging
+ * @param {Object} config     - Configuration object
+ * @returns {Object}          - Sanitized config
+ */
+function sanitizeForLogging(config) {
+  const sanitized = JSON.parse(JSON.stringify(config));
+  
+  // Remove or redact sensitive fields
+  const sensitiveKeys = ['token', 'password', 'secret', 'key'];
+  
+  function redactSensitive(obj) {
+    for (const key in obj) {
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        redactSensitive(obj[key]);
+      } else if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
+        obj[key] = '[REDACTED]';
+      }
+    }
+  }
+  
+  redactSensitive(sanitized);
+  return sanitized;
+}
+
+module.exports = { resolveConfigs, deepMerge, validateRequiredFields };
+
+/***/ }),
+
+/***/ 9502:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const fs = __nccwpck_require__(9896);
+const path = __nccwpck_require__(6928);
+const yaml = __nccwpck_require__(4281);
+
+/**
+ * Resolves label keys to actual label names from a project's label directory
+ * @param {Object} options
+ * @param {string} options.projectRepoPath          - Path to the project repository
+ * @param {string} options.labelDirectoryPath       - Relative path to `label-directory.yml`
+ * @param {Array<string>} options.requiredLabelKeys - Required label keys for workflow
+ * @param {Array<string>} options.optionalLabelKeys - Optional label keys for workflow
+ * @returns {Object}                                - Map of labelKeys to Label Names
+ */
+async function resolveLabels({ 
+  projectRepoPath, 
+  labelDirectoryPath, 
+  requiredLabelKeys = [], 
+  optionalLabelKeys = [] 
+}) {
+
+  // Construct full path to label directory file
+  const fullPath = path.join(projectRepoPath, labelDirectoryPath);
+  
+  // Check if label directory exists
+  if (!fs.existsSync(fullPath)) {
+    throw new Error(
+      `❌ Label directory not found at: ${labelDirectoryPath}\n` +
+      `   ⮡  Reference the config files for implementing the label directory file.`
+    );
+  }
+  
+  // Retrieve and parse label directory YML
+  let labelDirectory;
+  try {
+    const rawData = fs.readFileSync(fullPath, 'utf8');
+    labelData = yaml.load(rawData);
+    
+    if (!labelDirectory || typeof labelDirectory !== 'object') {
+      throw new Error('❌ Label directory file is empty or invalid');
+    }
+  } catch (error) {
+    if (error.name === 'YAMLException') {
+      throw new Error(
+        `❌ Failed to retrieve label directory YAML at ${labelDirectoryPath}: ${error.message}`
+      );
+    }
+    throw error;
+  }
+  
+  console.log(`✅ Loaded label directory from: ${labelDirectoryPath}`);
+  // console.log(`✅ labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
+  
+  // Check that required labelKeys exist in the label directory
+  const missingLabelKeys = requiredLabelKeys.filter(key => !labelDirectory[key]);
+  if (missingLabelKeys.length > 0) {
+    throw new Error(
+      `❌ Missing required labelKeys: ${missinglabelKeys.join(', ')}\n` +
+      `   ⮡  Provide required labelKeys as shown in the config files`
+    );
+  }
+  
+  // Build resolved labels object
+  const resolvedLabels = {};
+  const allLabelKeys = [...requiredLabelKeys, ...optionalLabelKeys];
+  
+  allLabelKeys.forEach(labelKey => {
+    if (labelDirectory[labelKey]) {
+      resolvedLabels[labelKey] = labelDirectory[labelKey];
+      console.log(`✔️ Found ${labelKey}: "${labelDirectory[labelKey]}"`);
+    } else if (optionalLabelKeys.includes(labelKey)) {
+      console.log(`⚠️ Optional ${labelKey} not found - skipping`);
+    }
+  });
+  
+  console.log(`✅ Success! Resolved ${Object.keys(resolvedLabels).length} labels`);
+  return resolvedLabels;
+}
+
+module.exports = { resolveLabels };
 
 /***/ }),
 
@@ -36759,8 +36761,8 @@ module.exports = parseParams
 var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
 const github = __nccwpck_require__(3228);
-const resolveConfigs = __nccwpck_require__(9751);
-const resolveLabels = __nccwpck_require__(2793);
+const resolveConfigs = __nccwpck_require__(9666);
+const resolveLabels = __nccwpck_require__(9502);
 const addUpdateLabelWeekly = __nccwpck_require__(602);
 
 /**
@@ -36867,8 +36869,8 @@ async function run() {
 }
 
 /**
- * Returns default configuration for the Add Update Label Weekly workflow
- * @returns {Object} Default configuration
+ * Returns default values for "Add Update Label Weekly" workflow if not specified in config
+ * @returns {Object}    - Default configuration
  */
 function getDefaults() {
   return {
@@ -36876,11 +36878,11 @@ function getDefaults() {
       updatedByDays: 3,      // Issues updated within this many days are considered current
       commentByDays: 7,      // Issues not updated for this many days are prompted for an update
       inactiveByDays: 14,    // Issues not updated for this many days are marked as inactive
-      upperLimitDays: 30,    // Bot comments older than this are not checked (to reduce API calls)
+      upperLimitDays: 35,    // Bot comments older than this are not checked (to reduce API calls)
     },
     
     projectBoard: {
-      targetStatus: 'In progress (actively working)',
+      targetStatus: 'In progress (actively working)', 
     },
     
     labels: {
@@ -36890,6 +36892,7 @@ function getDefaults() {
         'epic',
         'dependency',
         'skillsIssueCompleted',
+        'complexity0'
       ],
     },
     
