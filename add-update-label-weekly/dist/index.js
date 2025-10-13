@@ -34656,8 +34656,8 @@ function resolveConfigs({
   const config = deepMerge(defaults, projectConfig, overrides);
   
   // Log the final configuration (excluding sensitive data)
-  console.log('Final configuration:');
-  console.log(JSON.stringify(sanitizeForLogging(config), null, 2));
+  // console.log('Final configuration:');
+  // console.log(JSON.stringify(sanitizeForLogging(config), null, 2));
   
   // Validate required fields
   validateRequiredFields(config, requiredFields);
@@ -34800,7 +34800,7 @@ async function resolveLabels({
   let labelDirectory;
   try {
     const rawData = fs.readFileSync(fullPath, 'utf8');
-    labelData = yaml.load(rawData);
+    labelDirectory = yaml.load(rawData);
     
     if (!labelDirectory || typeof labelDirectory !== 'object') {
       throw new Error('❌ Label directory file is empty or invalid');
