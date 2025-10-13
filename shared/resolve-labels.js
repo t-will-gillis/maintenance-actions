@@ -33,7 +33,7 @@ async function resolveLabels({
   let labelDirectory;
   try {
     const rawData = fs.readFileSync(fullPath, 'utf8');
-    labelData = yaml.load(rawData);
+    labelDirectory = yaml.load(rawData);
     
     if (!labelDirectory || typeof labelDirectory !== 'object') {
       throw new Error('❌ Label directory file is empty or invalid');
