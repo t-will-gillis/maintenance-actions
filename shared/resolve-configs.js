@@ -149,4 +149,4 @@ function sanitizeForLogging(config) {
   return sanitized;
 }
 
-module.exports = { resolveConfigs, deepMerge, validateRequiredFields };
+module.exports = { resolve: resolveConfigs, deepMerge, validateRequiredFields };
