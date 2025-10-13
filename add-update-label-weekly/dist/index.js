@@ -34815,7 +34815,8 @@ async function resolveLabels({
   }
   
   console.log(`✅ Loaded label directory from: ${labelDirectoryPath}`);
-  // console.log(`✅ labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
+  console.log(`    CHECKING if Semver update is needed...`);
+  console.log(`✅ labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
   
   // Check that required labelKeys exist in the label directory
   const missingLabelKeys = requiredLabelKeys.filter(key => !labelDirectory[key]);
