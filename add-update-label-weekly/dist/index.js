@@ -34758,7 +34758,7 @@ function sanitizeForLogging(config) {
   return sanitized;
 }
 
-module.exports = { resolveConfigs, deepMerge, validateRequiredFields };
+module.exports = { resolve: resolveConfigs, deepMerge, validateRequiredFields };
 
 /***/ }),
 
@@ -34843,7 +34843,7 @@ async function resolveLabels({
   return resolvedLabels;
 }
 
-module.exports = { resolveLabels };
+module.exports = { resolve: resolveLabels };
 
 /***/ }),
 
