@@ -3,6 +3,7 @@ const github = require('@actions/github');
 const resolveConfigs = require('../shared/resolve-configs');
 const resolveLabels = require('../shared/resolve-labels');
 const addUpdateLabelWeekly = require('../core/add-update-label-weekly');
+const yaml = require('js-yaml');
 
 /**
  * Main entry point for the Add Update Label Weekly action

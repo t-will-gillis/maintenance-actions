@@ -5,7 +5,7 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build add-update-label-weekly/index.js -o add-update-label-weekly/dist && ncc build shared/resolve-configs.js -o shared/dist",
+    "build": "ncc build add-update-label-weekly/index.js -o add-update-label-weekly/dist",
     "build:all": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "echo \"Add linting script here\"",

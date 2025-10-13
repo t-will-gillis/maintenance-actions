@@ -3,7 +3,8 @@ const github = require('@actions/github');
 const path = require('path');
 const resolveConfigs = require('../shared/resolve-configs');
 const resolveLabels = require('../shared/resolve-labels');
-const moveClosedIssues = require('../core/move-closed-issues');
+// const moveClosedIssues = require('../core/move-closed-issues');
+const yaml = require('js-yaml');
 
 async function run() {
   try {

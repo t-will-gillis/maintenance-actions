@@ -36764,6 +36764,7 @@ const github = __nccwpck_require__(3228);
 const resolveConfigs = __nccwpck_require__(9666);
 const resolveLabels = __nccwpck_require__(9502);
 const addUpdateLabelWeekly = __nccwpck_require__(602);
+const yaml = __nccwpck_require__(4281);
 
 /**
  * Main entry point for the Add Update Label Weekly action
