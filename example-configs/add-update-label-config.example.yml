@@ -112,7 +112,7 @@ bots:
 
 
 # ==============================================================================
-# Comment template
+# Bot comment template
 # ==============================================================================
 # Template for the comment posted to issues needing updates
 # Available variables:

@@ -40,15 +40,15 @@
 # 7. In case you missed it-  DO NOT CHANGE the label keys on the left side 
 
 
-complexity0: "Complexity: Prework"                       # AULW
+complexity0: "Complexity: Prework"
 complexity1: "good first issue"
 complexity2: "Complexity: Small"
 complexity3: "Complexity: Medium"
 complexityMissing: "Complexity: Missing"
-dependency: "Dependency"                                 # AULW
-draft: "Draft"                                           # AULW
-epic: "epic"                                             # AULW
-er: "ER"                                                 # AULW
+dependency: "Dependency"
+draft: "Draft"
+epic: "epic"
+er: "ER"
 featureAdministrative: "Feature: Administrative"
 featureAgenda: "feature: agenda"
 featureAnalytics: "Feature: Analytics"
@@ -70,11 +70,14 @@ roleUserResearch: "role: user research"
 size025pt: "size: 0.25pt"
 size05pt: "size: 0.5pt"
 sizeMissing: "size: missing"
-statusUpdated: "Status: Updated"                          # AULW Required
-statusInactive1: "To Update !"                            # AULW Required
-statusInactive2: "2 weeks inactive"                       # AULW Required
-statusHelpWanted: "Status: Help Wanted"                   # AULW
+statusUpdated: "Status: Updated"
+statusInactive1: "To Update !"
+statusInactive2: "2 weeks inactive" 
+statusHelpWanted: "Status: Help Wanted"
 skillsIssueCompleted: "Skills Issue Completed"
 
-# Workflows using these labels:
-# - "AULW" - Add Update Label Weekly
+# ==============================================================================
+# Workflows using these labels
+# ==============================================================================
+# - ⓵ Add Update Label Weekly
+# - ⓶ Move Closed Issues

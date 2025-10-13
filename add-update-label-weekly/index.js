@@ -108,8 +108,8 @@ async function run() {
 }
 
 /**
- * Returns default configuration for the Add Update Label Weekly workflow
- * @returns {Object} Default configuration
+ * Returns default values for "Add Update Label Weekly" workflow if not specified in config
+ * @returns {Object}    - Default configuration
  */
 function getDefaults() {
   return {
@@ -117,11 +117,11 @@ function getDefaults() {
       updatedByDays: 3,      // Issues updated within this many days are considered current
       commentByDays: 7,      // Issues not updated for this many days are prompted for an update
       inactiveByDays: 14,    // Issues not updated for this many days are marked as inactive
-      upperLimitDays: 30,    // Bot comments older than this are not checked (to reduce API calls)
+      upperLimitDays: 35,    // Bot comments older than this are not checked (to reduce API calls)
     },
     
     projectBoard: {
-      targetStatus: 'In progress (actively working)',
+      targetStatus: 'In progress (actively working)', 
     },
     
     labels: {
@@ -131,6 +131,7 @@ function getDefaults() {
         'epic',
         'dependency',
         'skillsIssueCompleted',
+        'complexity0'
       ],
     },
     
