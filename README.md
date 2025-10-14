@@ -29,7 +29,10 @@ maintenance-actions/
 │   ├── add-update-label-weekly.example.yml
 │   └── label-directory.example.yml
 │
-└── package.json                        # Dependencies for all actions
+├── package.json                        # Dependencies for all actions
+├── 
+├── CHANGELOG.md
+└── README.md                           # This file
 ```
 
 ## Available Actions
