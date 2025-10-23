@@ -1,3 +1,4 @@
+const logger = require('./format-log-messages');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
@@ -30,25 +31,25 @@ function resolveConfigs({
     try {
       const fileContents = fs.readFileSync(fullPath, 'utf8');
       projectConfig = yaml.load(fileContents) || {};
-      console.log(`✅ Loaded configuration from: ${configPath}`);
+      logger.info(`Loaded configuration from: ${configPath}`);
     } catch (error) {
       if (error.name === 'YAMLException') {
         throw new Error(
-          `❌ Failed to parse configuration YAML at ${configPath}: ${error.message}`
+          `Failed to parse configuration YAML at ${configPath}: ${error.message}`
         );
       }
       throw error;
     }
   } else {
-    console.log(`⚠️ Configuration file not found at ${configPath}, using defaults only`);
+    logger.warn(`Configuration file not found at ${configPath}, using defaults only`);
   }
   
   // Deep merge: defaults < projectConfig < overrides
   const config = deepMerge(defaults, projectConfig, overrides);
   
   // Log the final configuration (excluding sensitive data)
-  // console.log('Final configuration:');
-  // console.log(JSON.stringify(sanitizeForLogging(config), null, 2));
+  // logger.info('Final configuration:');
+  // logger.info(JSON.stringify(sanitizeForLogging(config), null, 2));
   
   // Validate required fields
   validateRequiredFields(config, requiredFields);
@@ -115,13 +116,13 @@ function validateRequiredFields(config, requiredFields) {
   
   if (missing.length > 0) {
     throw new Error(
-      `❌ Config validation failed. Missing required fields:\n` +
+      `Config validation failed. Missing required fields:\n` +
       `  ${missing.join('\n  ')}\n` +
       `   ⮡  Provide required fields as shown in the config files`
     );
   }
   
-  console.log(`✅ Resolved required configuration fields`);
+  logger.info(`Resolved required configuration fields`);
 }
 
 /**
