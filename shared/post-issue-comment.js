@@ -1,4 +1,4 @@
-const logger = require('./format-log-messages');
+const { logger } = require('./format-log-messages');
 
 /**
  * Posts a comment to the specified issue

@@ -5,7 +5,7 @@
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // Import modules
-const logger = __nccwpck_require__(2515);
+const { logger } = __nccwpck_require__(2515);
 const queryIssueInfo = __nccwpck_require__(1563);
 const findLinkedIssue = __nccwpck_require__(8733);
 const getIssueTimeline = __nccwpck_require__(5103);
@@ -34506,7 +34506,7 @@ const logger = {
 
 };
 
-module.exports = logger;
+module.exports = { logger };
 
 
 /***/ }),
@@ -34514,7 +34514,7 @@ module.exports = logger;
 /***/ 5103:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const logger = __nccwpck_require__(2515);
+const { logger } = __nccwpck_require__(2515);
 
 /**
  * Function that returns the timeline of an issue
@@ -34669,7 +34669,7 @@ module.exports = queryIssueInfo;
 /***/ 9666:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const logger = __nccwpck_require__(2515);
+const { logger } = __nccwpck_require__(2515);
 const fs = __nccwpck_require__(9896);
 const path = __nccwpck_require__(6928);
 const yaml = __nccwpck_require__(4281);
@@ -34828,6 +34828,7 @@ module.exports = { resolve: resolveConfigs, deepMerge, validateRequiredFields };
 /***/ 9502:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const { logger } = __nccwpck_require__(2515);
 const fs = __nccwpck_require__(9896);
 const path = __nccwpck_require__(6928);
 const yaml = __nccwpck_require__(4281);

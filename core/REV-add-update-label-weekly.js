@@ -1,5 +1,5 @@
 // Import modules
-const logger = require('../shared/format-log-messages');
+const { logger } = require('../shared/format-log-messages');
 const queryIssueInfo = require('../shared/query-issue-info');
 const findLinkedIssue = require('../shared/find-linked-issue');
 const getIssueTimeline = require('../shared/get-issue-timeline');

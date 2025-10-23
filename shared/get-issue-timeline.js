@@ -1,4 +1,4 @@
-const logger = require('./format-log-messages');
+const { logger } = require('./format-log-messages');
 
 /**
  * Function that returns the timeline of an issue

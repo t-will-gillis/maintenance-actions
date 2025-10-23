@@ -1,4 +1,4 @@
-const logger = require('./format-log-messages');
+const { logger } = require('./format-log-messages');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
