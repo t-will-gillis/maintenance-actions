@@ -55,7 +55,7 @@ async function resolveLabels({
   const missingLabelKeys = requiredLabelKeys.filter(key => !labelDirectory[key]);
   if (missingLabelKeys.length > 0) {
     throw new Error(
-      `❌ Missing required labelKeys: ${missinglabelKeys.join(', ')}\n` +
+      `❌ Missing required labelKeys: ${missingLabelKeys.join(', ')}\n` +
       `   ⮡  Provide required labelKeys as shown in the config files`
     );
   }

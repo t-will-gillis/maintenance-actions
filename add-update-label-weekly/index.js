@@ -2,7 +2,7 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const resolveConfigs = require('../shared/resolve-configs');
 const resolveLabels = require('../shared/resolve-labels');
-const addUpdateLabelWeekly = require('../core/add-update-label-weekly');
+const addUpdateLabelWeekly = require('../core/REV-add-update-label-weekly');
 const yaml = require('js-yaml');
 
 /**
@@ -29,9 +29,9 @@ async function run() {
       throw new Error('GITHUB_WORKSPACE environment variable not set');
     }
     
-    console.log(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
-    console.log(`Working directory: ${projectRepoPath}`);
-    console.log('');
+    // console.log(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
+    // console.log(`Working directory: ${projectRepoPath}`);
+    // console.log('');
     
     // Define workflow-specific defaults
     const defaults = getDefaults();
@@ -84,8 +84,8 @@ async function run() {
     console.log('');
     
     await addUpdateLabelWeekly({
-      g: octokit,
-      c: context,
+      github: octokit,
+      context,
       labels,
       config,
     });
@@ -126,7 +126,7 @@ function getDefaults() {
     },
     
     labels: {
-      exclude: [
+      ignored: [
         'draft',
         'er',
         'epic',

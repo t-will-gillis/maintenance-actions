@@ -33,6 +33,28 @@ async function main({ g, c, labels: l, config: cfg }) {
   labels = l;
   config = cfg;
 
+  if (config.dryRun) {
+    console.log('⚠️  DRY-RUN MODE ENABLED ⚠️');
+    console.log('');
+  }
+  
+  // === START: Original logic (minimally modified) ===
+  
+  // Replace hardcoded values with config/labels:
+  // OLD: const days = 7;
+  // NEW: const days = config.timeframes.someDays;
+  
+  // OLD: const myLabel = "Status: Something";
+  // NEW: const myLabel = labels.someLabel;
+  
+  // OLD: if (status === "In progress") {
+  // NEW: if (status === config.projectBoard.targetStatus) {
+  
+  // Keep ALL business logic the same!
+  // Just replace hardcoded values with config/label references
+  
+  // === END: Original logic ===
+  
   // Calculate cutoff times from config settings
   const updatedByDays = config.timeframes.updatedByDays;
   const commentByDays = config.timeframes.commentByDays;
@@ -45,14 +67,13 @@ async function main({ g, c, labels: l, config: cfg }) {
   
   toUpdateCutoffTime = new Date();
   toUpdateCutoffTime.setDate(toUpdateCutoffTime.getDate() - commentByDays);
-  toUpdateCutoffTime.setMinutes(toUpdateCutoffTime.getMinutes() - 10);     //  Set cutoff time to slightly less than 7 days ago
+  toUpdateCutoffTime.setMinutes(toUpdateCutoffTime.getMinutes() + 10);     //  Set cutoff time to slightly less than 7 days ago
   
   inactiveCutoffTime = new Date();
   inactiveCutoffTime.setDate(inactiveCutoffTime.getDate() - inactiveByDays);
   
   upperLimitCutoffTime = new Date();
   upperLimitCutoffTime.setDate(upperLimitCutoffTime.getDate() - upperLimitDays);
-  upperLimitCutoffTime.setMinutes(upperLimitCutoffTime.getMinutes() + 10); //  Set cutoff time to slightly more than 14 days ago
 
   // Retrieve all issue numbers from a repo
   const issueNums = await getIssueNumsFromRepo();
@@ -60,7 +81,7 @@ async function main({ g, c, labels: l, config: cfg }) {
   for await (let issueNum of issueNums) {
     const timeline = await getTimeline(github, context, issueNum);
     const assignees = await getAssignees(issueNum);
-
+    // Error catching 
     if (assignees.length === 0) {
       console.log(`Issue #${issueNum}: Assignee not found, skipping`);
       continue;
@@ -82,6 +103,11 @@ async function main({ g, c, labels: l, config: cfg }) {
     } else if (responseObject.result === false && responseObject.labels === '') {   // Updated between 3 and 7 days, or recently assigned, or fixed by a PR by assignee, remove all three update-related labels
       await removeLabels(issueNum, labels.statusInactive1, labels.statusInactive2, labels.statusUpdated);
     }
+  }
+  if (config.dryRun) {
+    console.log('');
+    console.log('✓ End DRY-RUN MODE - No changes made');
+    console.log('');
   }
 }
 

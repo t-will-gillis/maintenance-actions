@@ -41,7 +41,7 @@ projectBoard:
 # ==============================================================================
 # This workflow uses issue labels to:
 #   1. Flag issues that need updates from the assignee, and
-#   2. Exclude issues that do not need to be checked.
+#   2. Ignore issues that do not need to be checked.
 #
 # The workflow relies on 'label keys' to identify the purpose of each label. These
 # 'label keys' correspond to the actual 'label names' (i.e. `Complexity: Medium`, 
@@ -81,16 +81,16 @@ labels:
     - statusInactive2
     - statusHelpWanted
 
-  # Optional (exclude) labels
+  # Ignored labels - optional
   #
-  # The following labels are optional. The automation will skip over (exclude) 
-  # issues labeled with a label name corresponding with the label keys shown here.
-  # For example, if an issue has the "Draft" label, it will be excluded from the
+  # The following labels are optional. The automation will ignore any 
+  # issues with a label name corresponding with the label keys shown here.
+  # For example, if an issue has the "Draft" label, it will be ignored on the
   # update check.
   #
   # You may add or remove label keys to this list as needed.
 
-  exclude:
+  ignored:
     - draft
     - er
     - epic
