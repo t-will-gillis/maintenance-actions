@@ -5,7 +5,7 @@
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 // Import modules
-const logger = __nccwpck_require__(4955);
+const logger = __nccwpck_require__(2515);
 const queryIssueInfo = __nccwpck_require__(1563);
 const findLinkedIssue = __nccwpck_require__(8733);
 const getIssueTimeline = __nccwpck_require__(5103);
@@ -34453,10 +34453,68 @@ module.exports = findLinkedIssue;
 
 /***/ }),
 
+/***/ 2515:
+/***/ ((module) => {
+
+// Logger utility: namespaced, color-coded console output GitHub Actions logs
+// format-log-messages.js
+
+const colors = {
+  reset: "\x1b[0m",
+  blue: "\x1b[34m",
+  cyan: "\x1b[36m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  red: "\x1b[31m",
+  magenta: "\x1b[35m",
+  gray: "\x1b[90m",
+};
+
+const DEBUG =
+  process.env.DRY_RUN === "true" || process.env.DRY_RUN === "1" || 
+  process.env.DEBUG === "true" || process.env.DEBUG === "1";
+
+const logger = {
+  // High-level step; start of a new logical phase
+  step: (msg) => console.log(`${colors.blue}[STEP]${colors.reset} ${msg}`),
+
+  // Normal informational & general progress messages
+  info: (msg) => console.log(`${colors.cyan}[INFO]${colors.reset} ${msg}`),
+
+  // Success or completion message
+  success: (msg) => console.log(`${colors.green}[SUCCESS]${colors.reset} ${msg}`),
+
+  // Non-fatal warning, annotated in GitHub Actions logs
+  warn: (msg) => {
+    console.warn(`${colors.yellow}[WARN]${colors.reset} ${msg}`);
+    console.log(`::warning::${msg}`);
+  },
+
+  // Errors: annotated in GitHub Actions logs
+  error: (msg) => {
+    console.error(`${colors.red}[ERROR]${colors.reset} ${msg}`);
+    console.log(`::error::${msg}`);
+  },
+
+  // Diagnostic detail; for dry-run/debug or verbose mode
+  debug: (msg) => {
+    if (DEBUG) {
+      // console.log(`${colors.magenta}[DEBUG]${colors.reset} ${msg}`);
+      console.log(`${colors.gray}[DEBUG]${colors.reset} ${msg}`);
+    }
+  }
+
+};
+
+module.exports = logger;
+
+
+/***/ }),
+
 /***/ 5103:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const logger = __nccwpck_require__(4525);
+const logger = __nccwpck_require__(2515);
 
 /**
  * Function that returns the timeline of an issue
@@ -34611,6 +34669,7 @@ module.exports = queryIssueInfo;
 /***/ 9666:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
+const logger = __nccwpck_require__(2515);
 const fs = __nccwpck_require__(9896);
 const path = __nccwpck_require__(6928);
 const yaml = __nccwpck_require__(4281);
@@ -34643,25 +34702,25 @@ function resolveConfigs({
     try {
       const fileContents = fs.readFileSync(fullPath, 'utf8');
       projectConfig = yaml.load(fileContents) || {};
-      console.log(`✅ Loaded configuration from: ${configPath}`);
+      logger.info(`Loaded configuration from: ${configPath}`);
     } catch (error) {
       if (error.name === 'YAMLException') {
         throw new Error(
-          `❌ Failed to parse configuration YAML at ${configPath}: ${error.message}`
+          `Failed to parse configuration YAML at ${configPath}: ${error.message}`
         );
       }
       throw error;
     }
   } else {
-    console.log(`⚠️ Configuration file not found at ${configPath}, using defaults only`);
+    logger.warn(`Configuration file not found at ${configPath}, using defaults only`);
   }
   
   // Deep merge: defaults < projectConfig < overrides
   const config = deepMerge(defaults, projectConfig, overrides);
   
   // Log the final configuration (excluding sensitive data)
-  // console.log('Final configuration:');
-  // console.log(JSON.stringify(sanitizeForLogging(config), null, 2));
+  // logger.info('Final configuration:');
+  // logger.info(JSON.stringify(sanitizeForLogging(config), null, 2));
   
   // Validate required fields
   validateRequiredFields(config, requiredFields);
@@ -34728,13 +34787,13 @@ function validateRequiredFields(config, requiredFields) {
   
   if (missing.length > 0) {
     throw new Error(
-      `❌ Config validation failed. Missing required fields:\n` +
+      `Config validation failed. Missing required fields:\n` +
       `  ${missing.join('\n  ')}\n` +
       `   ⮡  Provide required fields as shown in the config files`
     );
   }
   
-  console.log(`✅ Resolved required configuration fields`);
+  logger.info(`Resolved required configuration fields`);
 }
 
 /**
@@ -34795,7 +34854,7 @@ async function resolveLabels({
   // Check if label directory exists
   if (!fs.existsSync(fullPath)) {
     throw new Error(
-      `❌ Label directory not found at: ${labelDirectoryPath}\n` +
+      `Label directory not found at: ${labelDirectoryPath}\n` +
       `   ⮡  Reference the config files for implementing the label directory file.`
     );
   }
@@ -34807,26 +34866,26 @@ async function resolveLabels({
     labelDirectory = yaml.load(rawData);
     
     if (!labelDirectory || typeof labelDirectory !== 'object') {
-      throw new Error('❌ Label directory file is empty or invalid');
+      throw new Error('Label directory file is empty or invalid');
     }
   } catch (error) {
     if (error.name === 'YAMLException') {
       throw new Error(
-        `❌ Failed to retrieve label directory YAML at ${labelDirectoryPath}: ${error.message}`
+        `Failed to retrieve label directory YAML at ${labelDirectoryPath}: ${error.message}`
       );
     }
     throw error;
   }
   
-  console.log(`✅ Loaded label directory from: ${labelDirectoryPath}`);
-  console.log(`    CHECKING if Semver update is needed...`);
-  console.log(`✅ labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
+  logger.info(`Loaded label directory from: ${labelDirectoryPath}`);
+  logger.info(`    CHECKING if Semver update is needed...`);
+  logger.info(`labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
   
   // Check that required labelKeys exist in the label directory
   const missingLabelKeys = requiredLabelKeys.filter(key => !labelDirectory[key]);
   if (missingLabelKeys.length > 0) {
     throw new Error(
-      `❌ Missing required labelKeys: ${missingLabelKeys.join(', ')}\n` +
+      `Missing required labelKeys: ${missingLabelKeys.join(', ')}\n` +
       `   ⮡  Provide required labelKeys as shown in the config files`
     );
   }
@@ -34838,33 +34897,17 @@ async function resolveLabels({
   allLabelKeys.forEach(labelKey => {
     if (labelDirectory[labelKey]) {
       resolvedLabels[labelKey] = labelDirectory[labelKey];
-      console.log(`✔️ Found ${labelKey}: "${labelDirectory[labelKey]}"`);
+      logger.info(`Found ${labelKey}: "${labelDirectory[labelKey]}"`);
     } else if (optionalLabelKeys.includes(labelKey)) {
-      console.log(`⚠️ Optional ${labelKey} not found - skipping`);
+      logger.warn(`Optional ${labelKey} not found - skipping`);
     }
   });
   
-  console.log(`✅ Success! Resolved ${Object.keys(resolvedLabels).length} labels`);
+  logger.info(`Success! Resolved ${Object.keys(resolvedLabels).length} labels`);
   return resolvedLabels;
 }
 
 module.exports = { resolve: resolveLabels };
-
-/***/ }),
-
-/***/ 4955:
-/***/ ((module) => {
-
-module.exports = eval("require")("../shared/format-log-messages");
-
-
-/***/ }),
-
-/***/ 4525:
-/***/ ((module) => {
-
-module.exports = eval("require")("./format-log-messages");
-
 
 /***/ }),
 
