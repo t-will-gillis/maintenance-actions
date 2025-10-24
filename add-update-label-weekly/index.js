@@ -101,9 +101,9 @@ async function run() {
     logger.log('='.repeat(60));
     logger.log('Add Update Label Weekly - Failed');
     logger.log('='.repeat(60));
-    logger.error('Error details:', error.message);
+    console.error('Error details:', error.message);
     if (error.stack) {
-      logger.error('Stack trace:', error.stack);
+      console.error('Stack trace:', error.stack);
     }
     core.setFailed(`Action failed: ${error.message}`);
   }

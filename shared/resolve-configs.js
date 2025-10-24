@@ -49,7 +49,7 @@ function resolveConfigs({
   
   // Log the final configuration (excluding sensitive data)
   logger.info('Final configuration:');
-  logger.log(JSON.stringify(sanitizeForLogging(config), null, 2));
+  logger.log(JSON.stringify(config, null, 2));
   
   // Validate required fields
   validateRequiredFields(config, requiredFields);
