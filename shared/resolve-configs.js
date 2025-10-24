@@ -125,4 +125,4 @@ function validateRequiredFields(config, requiredFields) {
   logger.info(`Resolved required configuration fields`);
 }
 
-module.exports = { resolveConfigs, deepMerge, validateRequiredFields };
+module.exports = { resolve:resolveConfigs, deepMerge, validateRequiredFields };

@@ -84,4 +84,4 @@ async function resolveLabels({
   return resolvedLabels;
 }
 
-module.exports = { resolveLabels };
+module.exports = { resolve:resolveLabels };
