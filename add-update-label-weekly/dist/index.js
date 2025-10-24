@@ -34879,7 +34879,6 @@ async function resolveLabels({
   }
   
   logger.info(`Loaded label directory from: ${labelDirectoryPath}`);
-  logger.info(`    CHECKING if Semver update is needed...`);
   logger.info(`labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
   
   // Check that required labelKeys exist in the label directory
@@ -34897,6 +34896,7 @@ async function resolveLabels({
   
   allLabelKeys.forEach(labelKey => {
     if (labelDirectory[labelKey]) {
+      console.log(`${labelKey}: "${labelDirectory[labelKey]}"`);
       resolvedLabels[labelKey] = labelDirectory[labelKey];
       logger.info(`Found ${labelKey}: "${labelDirectory[labelKey]}"`);
     } else if (optionalLabelKeys.includes(labelKey)) {
@@ -34904,7 +34904,12 @@ async function resolveLabels({
     }
   });
   
-  logger.info(`Success! Resolved ${Object.keys(resolvedLabels).length} labels`);
+  if (Object.keys(resolvedLabels).length >= 0) {
+    logger.info(`Resolved ${Object.keys(resolvedLabels).length} labels`);
+  } else {
+    logger.warn('No labels were resolved from the label directory');
+  }
+  
   return resolvedLabels;
 }
 
@@ -36826,6 +36831,7 @@ module.exports = parseParams
 var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
 const github = __nccwpck_require__(3228);
+const { logger } = __nccwpck_require__(2515);
 const resolveConfigs = __nccwpck_require__(9666);
 const resolveLabels = __nccwpck_require__(9502);
 const addUpdateLabelWeekly = __nccwpck_require__(1941);
@@ -36855,9 +36861,9 @@ async function run() {
       throw new Error('GITHUB_WORKSPACE environment variable not set');
     }
     
-    // console.log(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
-    // console.log(`Working directory: ${projectRepoPath}`);
-    // console.log('');
+    // logger.info(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
+    // logger.info(`Working directory: ${projectRepoPath}`);
+    // logger.info('');
     
     // Define workflow-specific defaults
     const defaults = getDefaults();
@@ -36906,7 +36912,7 @@ async function run() {
     
     // Execute the workflow
     console.log('--- Workflow Execution ---');
-    console.log('Starting issue staleness check...');
+    logger.info('Starting issue staleness check...');
     console.log('');
     
     await addUpdateLabelWeekly({
@@ -36926,9 +36932,9 @@ async function run() {
     console.error('='.repeat(60));
     console.error('Add Update Label Weekly - Failed');
     console.error('='.repeat(60));
-    console.error('Error details:', error.message);
+    logger.error('Error details:', error.message);
     if (error.stack) {
-      console.error('Stack trace:', error.stack);
+      logger.error('Stack trace:', error.stack);
     }
     core.setFailed(`Action failed: ${error.message}`);
   }
