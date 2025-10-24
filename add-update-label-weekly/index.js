@@ -1,5 +1,6 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+const { logger } = require('../shared/format-log-messages');
 const resolveConfigs = require('../shared/resolve-configs');
 const resolveLabels = require('../shared/resolve-labels');
 const addUpdateLabelWeekly = require('../core/REV-add-update-label-weekly');
@@ -29,9 +30,9 @@ async function run() {
       throw new Error('GITHUB_WORKSPACE environment variable not set');
     }
     
-    // console.log(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
-    // console.log(`Working directory: ${projectRepoPath}`);
-    // console.log('');
+    // logger.info(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
+    // logger.info(`Working directory: ${projectRepoPath}`);
+    // logger.info('');
     
     // Define workflow-specific defaults
     const defaults = getDefaults();
@@ -80,7 +81,7 @@ async function run() {
     
     // Execute the workflow
     console.log('--- Workflow Execution ---');
-    console.log('Starting issue staleness check...');
+    logger.info('Starting issue staleness check...');
     console.log('');
     
     await addUpdateLabelWeekly({
@@ -100,9 +101,9 @@ async function run() {
     console.error('='.repeat(60));
     console.error('Add Update Label Weekly - Failed');
     console.error('='.repeat(60));
-    console.error('Error details:', error.message);
+    logger.error('Error details:', error.message);
     if (error.stack) {
-      console.error('Stack trace:', error.stack);
+      logger.error('Stack trace:', error.stack);
     }
     core.setFailed(`Action failed: ${error.message}`);
   }

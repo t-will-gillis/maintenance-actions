@@ -49,7 +49,6 @@ async function resolveLabels({
   }
   
   logger.info(`Loaded label directory from: ${labelDirectoryPath}`);
-  logger.info(`    CHECKING if Semver update is needed...`);
   logger.info(`labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
   
   // Check that required labelKeys exist in the label directory
@@ -67,6 +66,7 @@ async function resolveLabels({
   
   allLabelKeys.forEach(labelKey => {
     if (labelDirectory[labelKey]) {
+      console.log(`${labelKey}: "${labelDirectory[labelKey]}"`);
       resolvedLabels[labelKey] = labelDirectory[labelKey];
       logger.info(`Found ${labelKey}: "${labelDirectory[labelKey]}"`);
     } else if (optionalLabelKeys.includes(labelKey)) {
@@ -74,7 +74,12 @@ async function resolveLabels({
     }
   });
   
-  logger.info(`Success! Resolved ${Object.keys(resolvedLabels).length} labels`);
+  if (Object.keys(resolvedLabels).length >= 0) {
+    logger.info(`Resolved ${Object.keys(resolvedLabels).length} labels`);
+  } else {
+    logger.warn('No labels were resolved from the label directory');
+  }
+  
   return resolvedLabels;
 }
 
