@@ -32,7 +32,7 @@ async function run() {
     
     logger.info(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
     logger.info(`Working directory: ${projectRepoPath}`);
-    logger.info('');
+    logger.log('');
     
     // Define workflow-specific defaults
     const defaults = getDefaults();
@@ -81,7 +81,7 @@ async function run() {
     
     // Execute the workflow
     logger.log('--- Workflow Execution ---');
-    logger.info('Starting issue staleness check...');
+    logger.step('Starting issue staleness check...');
     logger.log('');
     
     await addUpdateLabelWeekly({
@@ -101,7 +101,6 @@ async function run() {
     logger.log('='.repeat(60));
     logger.log('Add Update Label Weekly - Failed');
     logger.log('='.repeat(60));
-    console.error('Error details:', error.message);
     if (error.stack) {
       console.error('Stack trace:', error.stack);
     }

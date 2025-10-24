@@ -1,7 +1,8 @@
-const { logger } = require('./format-log-messages');
+// Import modules
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
+const { logger } = require('./format-log-messages');
 
 /**
  * Resolves label keys to actual label names from a project's label directory
@@ -13,7 +14,7 @@ const yaml = require('js-yaml');
  * @returns {Object}                                - Map of labelKeys to Label Names
  */
 async function resolveLabels({ 
-  projectRepoPath, 
+  projectRepoPath = process.env.GITHUB_WORKSPACE,
   labelDirectoryPath, 
   requiredLabelKeys = [], 
   optionalLabelKeys = [] 
@@ -22,22 +23,22 @@ async function resolveLabels({
   // Construct full path to label directory file
   const fullPath = path.join(projectRepoPath, labelDirectoryPath);
   
-  // Check if label directory exists
+  // Check if label directory exists, if not throw error
   if (!fs.existsSync(fullPath)) {
     throw new Error(
-      `Label directory not found at: ${labelDirectoryPath}\n` +
-      `   ⮡  Reference the config files for implementing the label directory file.`
+      `Label directory file not found at: ${labelDirectoryPath}\n` +
+      `   ⮡  Reference the config files for implementing the label directory file`
     );
   }
   
   // Retrieve and parse label directory YML
-  let labelDirectory;
+  let labelDirectory = {};
+
   try {
     const rawData = fs.readFileSync(fullPath, 'utf8');
     labelDirectory = yaml.load(rawData);
-    
     if (!labelDirectory || typeof labelDirectory !== 'object') {
-      throw new Error('Label directory file is empty or invalid');
+      throw new Error(`Label directory file at ${labelDirectoryPath} is empty or invalid`);
     }
   } catch (error) {
     if (error.name === 'YAMLException') {
@@ -48,8 +49,8 @@ async function resolveLabels({
     throw error;
   }
   
-  logger.info(`Loaded label directory from: ${labelDirectoryPath}`);
-  logger.info(`labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
+  logger.step(`Loaded label directory from: ${labelDirectoryPath}`);
+  // logger.info(`labelKeys found: ${Object.keys(labelDirectory).join(', ')}`);
   
   // Check that required labelKeys exist in the label directory
   const missingLabelKeys = requiredLabelKeys.filter(key => !labelDirectory[key]);
@@ -63,20 +64,21 @@ async function resolveLabels({
   // Build resolved labels object
   const resolvedLabels = {};
   const allLabelKeys = [...requiredLabelKeys, ...optionalLabelKeys];
-  
-  allLabelKeys.forEach(labelKey => {
-    logger.log(`Resolving labelKey: ${labelKey}...`);
+
+  for (let labelKey of allLabelKeys) {
     if (labelDirectory[labelKey]) {
-      logger.log(`${labelKey}: "${labelDirectory[labelKey]}"`);
       resolvedLabels[labelKey] = labelDirectory[labelKey];
-      logger.info(`Found ${labelKey}: "${labelDirectory[labelKey]}"`);
+      logger.info(`Mapped ${labelKey}: "${labelDirectory[labelKey]}"`);
     } else if (optionalLabelKeys.includes(labelKey)) {
       logger.warn(`Optional ${labelKey} not found - skipping`);
     }
-  });
+  }
+
   
   if (Object.keys(resolvedLabels).length > 0) {
     logger.info(`Resolved ${Object.keys(resolvedLabels).length} labels`);
+    logger.debug(`Resolved labels: ${JSON.stringify(resolvedLabels, null, 2)}`);
+    logger.info(`Resolved labels: ${JSON.stringify(resolvedLabels, null, 2)}`); // for testing only
   } else {
     logger.warn('No labels were resolved from the label directory');
   }
