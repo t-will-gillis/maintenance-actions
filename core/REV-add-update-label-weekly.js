@@ -25,10 +25,10 @@ var upperLimitCutoffTime;
  * or 2.) assigning an assignee to the issue. If the last update was not between 7 to 14 days ago, apply the
  * appropriate label and request an update. However, if the assignee has submitted a PR that will fix the issue
  * regardless of when, all update-related labels should be removed.
- * @param {Object} g     - GitHub object from actions/github-script
- * @param {Object} c     - context object from actions/github-script
- * @param {Object} l     - Resolved label mappings (label keys to label names)
- * @param {Object} cfg   - Configuration object
+ * @param {Object} github     - GitHub object from actions/github-script
+ * @param {Object} context    - context object from actions/github-script
+ * @param {Object} labels     - Resolved label mappings (label keys to label names)
+ * @param {Object} config     - Configuration object
  */
 async function main({ github, context, labels, config }) {
 

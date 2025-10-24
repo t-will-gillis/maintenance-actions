@@ -31,10 +31,10 @@ var upperLimitCutoffTime;
  * or 2.) assigning an assignee to the issue. If the last update was not between 7 to 14 days ago, apply the
  * appropriate label and request an update. However, if the assignee has submitted a PR that will fix the issue
  * regardless of when, all update-related labels should be removed.
- * @param {Object} g     - GitHub object from actions/github-script
- * @param {Object} c     - context object from actions/github-script
- * @param {Object} l     - Resolved label mappings (label keys to label names)
- * @param {Object} cfg   - Configuration object
+ * @param {Object} github     - GitHub object from actions/github-script
+ * @param {Object} context    - context object from actions/github-script
+ * @param {Object} labels     - Resolved label mappings (label keys to label names)
+ * @param {Object} config     - Configuration object
  */
 async function main({ github, context, labels, config }) {
 
@@ -34498,6 +34498,10 @@ const logger = {
       // console.log(`${colors.magenta}[DEBUG]${colors.reset} ${msg}`);
       console.log(`${colors.gray}[DEBUG]${colors.reset} ${msg}`);
     }
+  },
+
+  log: (msg) => {
+    console.log(msg);
   }
 
 };
@@ -34715,8 +34719,8 @@ function resolveConfigs({
   const config = deepMerge(defaults, projectConfig, overrides);
   
   // Log the final configuration (excluding sensitive data)
-  // logger.info('Final configuration:');
-  // logger.info(JSON.stringify(sanitizeForLogging(config), null, 2));
+  logger.info('Final configuration:');
+  logger.log(JSON.stringify(sanitizeForLogging(config), null, 2));
   
   // Validate required fields
   validateRequiredFields(config, requiredFields);
@@ -34792,32 +34796,7 @@ function validateRequiredFields(config, requiredFields) {
   logger.info(`Resolved required configuration fields`);
 }
 
-/**
- * Removes sensitive data from config for logging
- * @param {Object} config     - Configuration object
- * @returns {Object}          - Sanitized config
- */
-function sanitizeForLogging(config) {
-  const sanitized = JSON.parse(JSON.stringify(config));
-  
-  // Remove or redact sensitive fields
-  const sensitiveKeys = ['token', 'password', 'secret', 'key'];
-  
-  function redactSensitive(obj) {
-    for (const key in obj) {
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        redactSensitive(obj[key]);
-      } else if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
-        obj[key] = '[REDACTED]';
-      }
-    }
-  }
-  
-  redactSensitive(sanitized);
-  return sanitized;
-}
-
-module.exports = { resolve: resolveConfigs, deepMerge, validateRequiredFields };
+module.exports = { resolveConfigs, deepMerge, validateRequiredFields };
 
 /***/ }),
 
@@ -34891,8 +34870,9 @@ async function resolveLabels({
   const allLabelKeys = [...requiredLabelKeys, ...optionalLabelKeys];
   
   allLabelKeys.forEach(labelKey => {
+    logger.log(`Resolving labelKey: ${labelKey}...`);
     if (labelDirectory[labelKey]) {
-      console.log(`${labelKey}: "${labelDirectory[labelKey]}"`);
+      logger.log(`${labelKey}: "${labelDirectory[labelKey]}"`);
       resolvedLabels[labelKey] = labelDirectory[labelKey];
       logger.info(`Found ${labelKey}: "${labelDirectory[labelKey]}"`);
     } else if (optionalLabelKeys.includes(labelKey)) {
@@ -34900,7 +34880,7 @@ async function resolveLabels({
     }
   });
   
-  if (Object.keys(resolvedLabels).length >= 0) {
+  if (Object.keys(resolvedLabels).length > 0) {
     logger.info(`Resolved ${Object.keys(resolvedLabels).length} labels`);
   } else {
     logger.warn('No labels were resolved from the label directory');
@@ -34909,7 +34889,7 @@ async function resolveLabels({
   return resolvedLabels;
 }
 
-module.exports = { resolve: resolveLabels };
+module.exports = { resolveLabels };
 
 /***/ }),
 
@@ -36839,9 +36819,9 @@ const yaml = __nccwpck_require__(4281);
  */
 async function run() {
   try {
-    console.log('='.repeat(60));
-    console.log('Add Update Label Weekly - Starting');
-    console.log('='.repeat(60));
+    logger.log('='.repeat(60));
+    logger.log('Add Update Label Weekly - Starting');
+    logger.log('='.repeat(60));
     
     // Get action inputs
     const token = core.getInput('github-token', { required: true });
@@ -36857,15 +36837,15 @@ async function run() {
       throw new Error('GITHUB_WORKSPACE environment variable not set');
     }
     
-    // logger.info(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
-    // logger.info(`Working directory: ${projectRepoPath}`);
-    // logger.info('');
+    logger.info(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
+    logger.info(`Working directory: ${projectRepoPath}`);
+    logger.info('');
     
     // Define workflow-specific defaults
     const defaults = getDefaults();
     
     // Load and merge configuration
-    console.log('--- Configuration Loading ---');
+    logger.log('--- Configuration Loading ---');
     const config = resolveConfigs.resolve({
       projectRepoPath,
       configPath,
@@ -36880,13 +36860,13 @@ async function run() {
         'commentTemplate',
       ],
     });
-    console.log('');
+    logger.log('');
     
     // Determine label directory path from config
     const labelDirectoryPath = config.labelDirectoryPath || '.github/maintenance-actions/label-directory.yml';
     
     // Resolve label keys to label names
-    console.log('--- Label Resolution ---');
+    logger.log('--- Label Resolution ---');
     const labels = await resolveLabels.resolve({
       projectRepoPath,
       labelDirectoryPath,
@@ -36904,12 +36884,12 @@ async function run() {
         'statusHelpWanted',
       ],
     });
-    console.log('');
+    logger.log('');
     
     // Execute the workflow
-    console.log('--- Workflow Execution ---');
+    logger.log('--- Workflow Execution ---');
     logger.info('Starting issue staleness check...');
-    console.log('');
+    logger.log('');
     
     await addUpdateLabelWeekly({
       github: octokit,
@@ -36918,16 +36898,16 @@ async function run() {
       config,
     });
     
-    console.log('');
-    console.log('='.repeat(60));
-    console.log('Add Update Label Weekly - Completed Successfully');
-    console.log('='.repeat(60));
+    logger.log('');
+    logger.log('='.repeat(60));
+    logger.log('Add Update Label Weekly - Completed Successfully');
+    logger.log('='.repeat(60));
     
   } catch (error) {
-    console.error('');
-    console.error('='.repeat(60));
-    console.error('Add Update Label Weekly - Failed');
-    console.error('='.repeat(60));
+    logger.log('');
+    logger.log('='.repeat(60));
+    logger.log('Add Update Label Weekly - Failed');
+    logger.log('='.repeat(60));
     logger.error('Error details:', error.message);
     if (error.stack) {
       logger.error('Stack trace:', error.stack);

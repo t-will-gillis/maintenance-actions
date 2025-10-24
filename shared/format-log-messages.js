@@ -44,6 +44,10 @@ const logger = {
       // console.log(`${colors.magenta}[DEBUG]${colors.reset} ${msg}`);
       console.log(`${colors.gray}[DEBUG]${colors.reset} ${msg}`);
     }
+  },
+
+  log: (msg) => {
+    console.log(msg);
   }
 
 };

@@ -48,8 +48,8 @@ function resolveConfigs({
   const config = deepMerge(defaults, projectConfig, overrides);
   
   // Log the final configuration (excluding sensitive data)
-  // logger.info('Final configuration:');
-  // logger.info(JSON.stringify(sanitizeForLogging(config), null, 2));
+  logger.info('Final configuration:');
+  logger.log(JSON.stringify(sanitizeForLogging(config), null, 2));
   
   // Validate required fields
   validateRequiredFields(config, requiredFields);
@@ -125,29 +125,4 @@ function validateRequiredFields(config, requiredFields) {
   logger.info(`Resolved required configuration fields`);
 }
 
-/**
- * Removes sensitive data from config for logging
- * @param {Object} config     - Configuration object
- * @returns {Object}          - Sanitized config
- */
-function sanitizeForLogging(config) {
-  const sanitized = JSON.parse(JSON.stringify(config));
-  
-  // Remove or redact sensitive fields
-  const sensitiveKeys = ['token', 'password', 'secret', 'key'];
-  
-  function redactSensitive(obj) {
-    for (const key in obj) {
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        redactSensitive(obj[key]);
-      } else if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
-        obj[key] = '[REDACTED]';
-      }
-    }
-  }
-  
-  redactSensitive(sanitized);
-  return sanitized;
-}
-
-module.exports = { resolve: resolveConfigs, deepMerge, validateRequiredFields };
+module.exports = { resolveConfigs, deepMerge, validateRequiredFields };

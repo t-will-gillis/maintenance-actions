@@ -12,9 +12,9 @@ const yaml = require('js-yaml');
  */
 async function run() {
   try {
-    console.log('='.repeat(60));
-    console.log('Add Update Label Weekly - Starting');
-    console.log('='.repeat(60));
+    logger.log('='.repeat(60));
+    logger.log('Add Update Label Weekly - Starting');
+    logger.log('='.repeat(60));
     
     // Get action inputs
     const token = core.getInput('github-token', { required: true });
@@ -30,15 +30,15 @@ async function run() {
       throw new Error('GITHUB_WORKSPACE environment variable not set');
     }
     
-    // logger.info(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
-    // logger.info(`Working directory: ${projectRepoPath}`);
-    // logger.info('');
+    logger.info(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
+    logger.info(`Working directory: ${projectRepoPath}`);
+    logger.info('');
     
     // Define workflow-specific defaults
     const defaults = getDefaults();
     
     // Load and merge configuration
-    console.log('--- Configuration Loading ---');
+    logger.log('--- Configuration Loading ---');
     const config = resolveConfigs.resolve({
       projectRepoPath,
       configPath,
@@ -53,13 +53,13 @@ async function run() {
         'commentTemplate',
       ],
     });
-    console.log('');
+    logger.log('');
     
     // Determine label directory path from config
     const labelDirectoryPath = config.labelDirectoryPath || '.github/maintenance-actions/label-directory.yml';
     
     // Resolve label keys to label names
-    console.log('--- Label Resolution ---');
+    logger.log('--- Label Resolution ---');
     const labels = await resolveLabels.resolve({
       projectRepoPath,
       labelDirectoryPath,
@@ -77,12 +77,12 @@ async function run() {
         'statusHelpWanted',
       ],
     });
-    console.log('');
+    logger.log('');
     
     // Execute the workflow
-    console.log('--- Workflow Execution ---');
+    logger.log('--- Workflow Execution ---');
     logger.info('Starting issue staleness check...');
-    console.log('');
+    logger.log('');
     
     await addUpdateLabelWeekly({
       github: octokit,
@@ -91,16 +91,16 @@ async function run() {
       config,
     });
     
-    console.log('');
-    console.log('='.repeat(60));
-    console.log('Add Update Label Weekly - Completed Successfully');
-    console.log('='.repeat(60));
+    logger.log('');
+    logger.log('='.repeat(60));
+    logger.log('Add Update Label Weekly - Completed Successfully');
+    logger.log('='.repeat(60));
     
   } catch (error) {
-    console.error('');
-    console.error('='.repeat(60));
-    console.error('Add Update Label Weekly - Failed');
-    console.error('='.repeat(60));
+    logger.log('');
+    logger.log('='.repeat(60));
+    logger.log('Add Update Label Weekly - Failed');
+    logger.log('='.repeat(60));
     logger.error('Error details:', error.message);
     if (error.stack) {
       logger.error('Stack trace:', error.stack);

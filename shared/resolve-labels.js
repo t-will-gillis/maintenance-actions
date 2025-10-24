@@ -65,8 +65,9 @@ async function resolveLabels({
   const allLabelKeys = [...requiredLabelKeys, ...optionalLabelKeys];
   
   allLabelKeys.forEach(labelKey => {
+    logger.log(`Resolving labelKey: ${labelKey}...`);
     if (labelDirectory[labelKey]) {
-      console.log(`${labelKey}: "${labelDirectory[labelKey]}"`);
+      logger.log(`${labelKey}: "${labelDirectory[labelKey]}"`);
       resolvedLabels[labelKey] = labelDirectory[labelKey];
       logger.info(`Found ${labelKey}: "${labelDirectory[labelKey]}"`);
     } else if (optionalLabelKeys.includes(labelKey)) {
@@ -74,7 +75,7 @@ async function resolveLabels({
     }
   });
   
-  if (Object.keys(resolvedLabels).length >= 0) {
+  if (Object.keys(resolvedLabels).length > 0) {
     logger.info(`Resolved ${Object.keys(resolvedLabels).length} labels`);
   } else {
     logger.warn('No labels were resolved from the label directory');
@@ -83,4 +84,4 @@ async function resolveLabels({
   return resolvedLabels;
 }
 
-module.exports = { resolve: resolveLabels };
+module.exports = { resolveLabels };
