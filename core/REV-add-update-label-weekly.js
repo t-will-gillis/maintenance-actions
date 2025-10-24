@@ -30,11 +30,7 @@ var upperLimitCutoffTime;
  * @param {Object} l     - Resolved label mappings (label keys to label names)
  * @param {Object} cfg   - Configuration object
  */
-async function main({ g, c, labels: l, config: cfg }) {
-  github = g;
-  context = c;
-  labels = l;
-  config = cfg;
+async function main({ github, context, labels, config }) {
 
   // Calculate cutoff times from config settings
   const updatedByDays = config.timeframes.updatedByDays;
