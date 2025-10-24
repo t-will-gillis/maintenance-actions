@@ -36874,12 +36874,12 @@ async function run() {
     const labels = await resolveLabels.resolve({
       projectRepoPath,
       labelDirectoryPath,
-      requiredKeys: [
+      requiredLabelKeys: [
         'statusUpdated',
         'statusInactive1',
         'statusInactive2',
       ],
-      optionalKeys: [
+      optionalLabelKeys: [
         'draft',
         'er',
         'epic',

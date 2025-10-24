@@ -59,10 +59,10 @@ async function run() {
     const labels = await resolveLabels.resolve({
       projectRepoPath,
       labelDirectoryPath,
-      requiredKeys: [
+      requiredLabelKeys: [
         // List required label keys
       ],
-      optionalKeys: [
+      optionalLabelKeys: [
         // List optional label keys
       ],
     });
