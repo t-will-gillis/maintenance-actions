@@ -4,7 +4,7 @@ const { logger } = require('../shared/format-log-messages');
 const resolveConfigs = require('../shared/resolve-configs');
 const resolveLabels = require('../shared/resolve-labels');
 const addUpdateLabelWeekly = require('../core/REV-add-update-label-weekly');
-const yaml = require('js-yaml');
+const yaml = require('js-yaml'); 
 
 /**
  * Main entry point for the Add Update Label Weekly action
@@ -12,54 +12,57 @@ const yaml = require('js-yaml');
  */
 async function run() {
   try {
-    logger.log('='.repeat(60));
-    logger.log('Add Update Label Weekly - Starting');
-    logger.log('='.repeat(60));
+    logger.log(`=`.repeat(60));
+    logger.log(`Add Update Label Weekly starting...`);
+    logger.log(`=`.repeat(60));
     
     // Get action inputs
     const token = core.getInput('github-token', { required: true });
     const configPath = core.getInput('config-path') || '.github/maintenance-actions/add-update-label-config.yml';
+    const dryRun = core.getInput('dry-run') || 'false';
+    dryRun && logger.warn(`Running in DRY-RUN mode: No changes will be applied`);
     
-    // Initialize GitHub client
+    // Initialize octokit/GitHub client
     const octokit = github.getOctokit(token);
     const context = github.context;
     
     // Get project repository path
     const projectRepoPath = process.env.GITHUB_WORKSPACE;
     if (!projectRepoPath) {
-      throw new Error('GITHUB_WORKSPACE environment variable not set');
+      throw new Error(`GITHUB_WORKSPACE environment variable not set`);
     }
     
     logger.info(`Project repository: ${context.repo.owner}/${context.repo.repo}`);
     logger.info(`Working directory: ${projectRepoPath}`);
-    logger.log('');
+    logger.log(``);
     
     // Define workflow-specific defaults
-    const defaults = getDefaults();
+    const defaults = getDefaultConfigs();
     
     // Load and merge configuration
-    logger.log('--- Configuration Loading ---');
+    logger.step(`Resolving configurations...`);
     const config = resolveConfigs.resolve({
       projectRepoPath,
       configPath,
       defaults,
-      overrides: {}, // Can be populated from action inputs if needed
+      overrides: { dryRun },
       requiredFields: [
         'timeframes.updatedByDays',
         'timeframes.commentByDays',
         'timeframes.inactiveByDays',
         'timeframes.upperLimitDays',
         'projectBoard.targetStatus',
+        'projectBoard.questionsStatus',
         'commentTemplate',
       ],
     });
-    logger.log('');
+    logger.log(``);
     
     // Determine label directory path from config
     const labelDirectoryPath = config.labelDirectoryPath || '.github/maintenance-actions/label-directory.yml';
     
     // Resolve label keys to label names
-    logger.log('--- Label Resolution ---');
+    logger.step(`Resolving labels...`);
     const labels = await resolveLabels.resolve({
       projectRepoPath,
       labelDirectoryPath,
@@ -77,12 +80,11 @@ async function run() {
         'statusHelpWanted',
       ],
     });
-    logger.log('');
+    logger.log(``);
     
     // Execute the workflow
-    logger.log('--- Workflow Execution ---');
-    logger.step('Starting issue staleness check...');
-    logger.log('');
+    logger.step(`Running Add Update Label Weekly workflow...`);
+    logger.log(``);
     
     await addUpdateLabelWeekly({
       github: octokit,
@@ -91,28 +93,28 @@ async function run() {
       config,
     });
     
-    logger.log('');
-    logger.log('='.repeat(60));
-    logger.log('Add Update Label Weekly - Completed Successfully');
-    logger.log('='.repeat(60));
+    logger.log(``);
+    logger.log(`=`.repeat(60));
+    logger.success(`Add Update Label Weekly - completed successfully`);
+    logger.log(`=`.repeat(60));
     
   } catch (error) {
-    logger.log('');
-    logger.log('='.repeat(60));
-    logger.log('Add Update Label Weekly - Failed');
-    logger.log('='.repeat(60));
+    logger.log(``);
+    logger.log(`=`.repeat(60));
+    logger.log(`Add Update Label Weekly - failed`);
+    logger.log(`=`.repeat(60));
     if (error.stack) {
-      console.error('Stack trace:', error.stack);
+      console.error(`Stack trace: ${error.stack}`);
     }
     core.setFailed(`Action failed: ${error.message}`);
   }
 }
 
 /**
- * Returns default values for "Add Update Label Weekly" workflow if not specified in config
- * @returns {Object}    - Default configuration
+ * Returns default values for workflow if not specified in config
+ * @returns {Object}    - Default configurations if not specified in config file
  */
-function getDefaults() {
+function getDefaultConfigs() {
   return {
     timeframes: {
       updatedByDays: 3,      // Issues updated within this many days are considered current
@@ -123,6 +125,7 @@ function getDefaults() {
     
     projectBoard: {
       targetStatus: 'In progress (actively working)', 
+      questionsStatus: 'Questions / In Review',
     },
     
     labels: {
@@ -140,6 +143,8 @@ function getDefaults() {
       'github-actions[bot]',
       'HackforLABot',
     ],
+
+    teamSlackChannel: '#hfla-site',
     
     timezone: 'America/Los_Angeles',
     
@@ -164,11 +169,13 @@ Please add an update comment using the below template (even if you have a pull r
 4. ETA: "When do you expect this issue to be completed?"
 5. Pictures (optional): "Add any pictures of the visual changes made to the site so far."
 
-If you need help, be sure to either: 1) place your issue in the "Questions/ In Review" status column of the Project Board and ask for help at your next meeting; 2) put a \`\${statusHelpWanted}\` label on your issue and pull request; or 3) put up a request for assistance on the #hfla-site channel. Please note that including your questions in the issue comments- along with screenshots, if applicable- will help us to help you. [Here](https://github.com/hackforla/website/issues/1619#issuecomment-897315561) and [here](https://github.com/hackforla/website/issues/1908#issuecomment-877908152) are examples of well-formed questions.
+If you need help, be sure to either: 1) place your issue in the \${questionsStatus} status column of the Project Board and ask for help at your next meeting; 2) put a \`\${statusHelpWanted}\` label on your issue and pull request; or 3) put up a request for assistance on the team's \${teamSlackChannel} Slack channel.  
+
+Please note that including your questions in the issue comments- along with screenshots, if applicable- will help us to help you. [Here](https://github.com/hackforla/website/issues/1619#issuecomment-897315561) and [here](https://github.com/hackforla/website/issues/1908#issuecomment-877908152) are examples of well-formed questions.
 
 <sub>You are receiving this comment because your last comment was before \${cutoffTime}.</sub>
 
-Thanks for being part of the HfLA!`;
+Thanks for being part of HfLA!`;
 }
 
 // Run the action
