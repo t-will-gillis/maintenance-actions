@@ -18,7 +18,7 @@ function findLinkedIssue(text) {
       return parseInt(matches[0][1], 10);
     }
   } catch (err) {
-      console.error('Regex error in findLinkedIssue:', err);
+      logger.error('Regex error in findLinkedIssue:', err);
   }
 
   return false;

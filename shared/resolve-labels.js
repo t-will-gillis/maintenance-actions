@@ -68,7 +68,7 @@ async function resolveLabels({
   for (let labelKey of allLabelKeys) {
     if (labelDirectory[labelKey]) {
       resolvedLabels[labelKey] = labelDirectory[labelKey];
-      logger.info(`Mapped ${labelKey}: "${labelDirectory[labelKey]}"`);
+      logger.debug(`Mapped ${labelKey}: "${labelDirectory[labelKey]}"`);
     } else if (optionalLabelKeys.includes(labelKey)) {
       logger.warn(`Optional ${labelKey} not found - skipping`);
     }
@@ -78,7 +78,6 @@ async function resolveLabels({
   if (Object.keys(resolvedLabels).length > 0) {
     logger.info(`Resolved ${Object.keys(resolvedLabels).length} labels`);
     logger.debug(`Resolved labels: ${JSON.stringify(resolvedLabels, null, 2)}`);
-    logger.info(`Resolved labels: ${JSON.stringify(resolvedLabels, null, 2)}`); // for testing only
   } else {
     logger.warn('No labels were resolved from the label directory');
   }

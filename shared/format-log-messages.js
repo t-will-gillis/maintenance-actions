@@ -46,6 +46,7 @@ const logger = {
     }
   },
 
+  // Standard log without flag
   log: (msg) => {
     console.log(msg);
   }
